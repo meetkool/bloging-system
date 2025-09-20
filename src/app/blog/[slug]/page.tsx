@@ -1,17 +1,35 @@
 import { allPosts } from 'contentlayer/generated';
 import { format, parseISO } from 'date-fns';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Article, Graph, WithContext } from 'schema-dts';
-import MDXContent from '@/components/mdx-content';
+// Removed MDXContent import to fix hydration issues
+
+// Function to get tag color based on tag name
+const getTagColor = (tag: string) => {
+  const tagColors: Record<string, string> = {
+    'CSS': 'css-tag',
+    'HTML': 'html-tag', 
+    'JavaScript': 'js-tag',
+    'React': 'react-tag',
+    'Next.js': 'nextjs-tag',
+    'Tutorial': 'tutorial-tag',
+    'Web Development': 'webdev-tag',
+    'Programming': 'programming-tag',
+    'javascript': 'js-tag',
+    'react': 'react-tag',
+    'python': 'python-tag',
+    'syntax-highlighting': 'code-tag',
+  };
+  return tagColors[tag] || 'default-tag';
+};
 
 interface IProps {
   params: Promise<{ slug: string }>;
 }
 
-export const generateStaticParams = async () =>
+// generateStaticParams is required for static export
+export const generateStaticParams = () =>
   allPosts.map((post) => ({ slug: post._raw.flattenedPath }));
 
 export async function generateMetadata({ params }: IProps): Promise<Metadata> {
@@ -19,34 +37,14 @@ export async function generateMetadata({ params }: IProps): Promise<Metadata> {
   const post = allPosts.find((post) => post._raw.flattenedPath === slug);
 
   if (!post) {
-    return {};
+    return {
+      title: '404 - Post not found',
+    };
   }
 
-  const { excerpt, title, date } = post;
-
-  const description = excerpt;
-
-  const ogImage = {
-    url: `${process.env.HOST}/blog/${slug}/og.png`,
-  };
-
   return {
-    title,
-    description,
-    openGraph: {
-      type: 'article',
-      url: `${process.env.HOST}/blog/${slug}`,
-      title,
-      description,
-      publishedTime: date,
-      images: [ogImage],
-    },
-    twitter: {
-      title,
-      description,
-      images: ogImage,
-      card: 'summary_large_image',
-    },
+    title: post.title,
+    description: post.excerpt,
   };
 }
 
@@ -56,100 +54,83 @@ export default async function Page({ params }: IProps) {
 
   if (!post) notFound();
 
-  const structuredData: WithContext<Article> = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    url: `${process.env.HOST}/blog/${slug}/`,
-    image: {
-      '@type': 'ImageObject',
-      url: `${process.env.HOST}${(post.cover || '/next.svg').trim()}/`,
-    },
-    description: post.excerpt,
-    datePublished: post.date,
-    publisher: {
-      '@type': 'Person',
-      name: 'My Blog',
-      url: process.env.HOST,
-      image: '/avatar.png',
-    },
-    author: {
-      '@type': 'Person',
-      name: 'My Blog',
-      url: process.env.HOST,
-      image: '/avatar.png',
-    },
-  };
-  
-  const jsonLd: Graph = {
-    '@context': 'https://schema.org',
-    '@graph': [structuredData],
-  };
-
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link 
-          href="/"
-          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8"
-        >
-          ← Back to Blog
-        </Link>
-        
-        <article className="prose prose-lg dark:prose-invert max-w-none blog-bg rounded-lg p-8 shadow-md">
-          <header className="mb-8">
-            <div className="flex items-center gap-4 mb-4">
-              <time
-                dateTime={post?.date}
-                className="uppercase font-bold text-blue-600 text-sm"
-              >
-                {format(parseISO(post?.date), 'MMM dd, yyyy')}
-              </time>
-              <span className="text-sm text-gray-500">
-                {post.readTime} min read
-              </span>
-            </div>
-            
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {post.title}
-            </h1>
-            
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
-              {post.excerpt}
-            </p>
-            
-            <div className="flex flex-wrap gap-2 mb-8">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm"
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <article className="prose prose-lg max-w-none">
+        {/* Back link */}
+        <div className="mb-8">
+          <Link 
+            href="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Blog
+          </Link>
+        </div>
+
+        {/* Post header */}
+        <header className="mb-8">
+          <div className="mb-4">
+            <time className="text-sm text-gray-500">
+              {format(parseISO(post.date), 'MMMM dd, yyyy')}
+            </time>
+          </div>
+          <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+          {post.excerpt && (
+            <p className="text-xl text-gray-600 mb-6">{post.excerpt}</p>
+          )}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {post.tags.map((tag, index) => (
+                <span 
+                  key={index} 
+                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
                 >
                   {tag}
                 </span>
               ))}
             </div>
-            
-            <div className="relative h-64 md:h-96 rounded-lg overflow-hidden mb-8">
-              <Image
-                src={(post.cover || '/next.svg').trim()}
-                width={800}
-                height={400}
-                priority={true}
-                alt={post.title}
-                className="object-cover w-full h-full"
-              />
-            </div>
-          </header>
-          
-          <div className="prose-content">
-            <MDXContent code={post.body.code} />
+          )}
+        </header>
+        
+        {/* Post content */}
+        <div className="mb-8">
+          <div className="prose prose-lg max-w-none">
+            {post.body.raw ? (
+              <div dangerouslySetInnerHTML={{ __html: post.body.raw }} />
+            ) : (
+              <p>Content will be rendered here...</p>
+            )}
           </div>
-        </article>
-      </div>
-    </>
+        </div>
+        
+        {/* Simple share section */}
+        <footer className="border-t pt-6">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Share this article</p>
+            <div className="flex justify-center space-x-4">
+              <a 
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+              >
+                Twitter
+              </a>
+              <a 
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:text-blue-700 transition-colors"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
+        </footer>
+      </article>
+    </div>
   );
 }
