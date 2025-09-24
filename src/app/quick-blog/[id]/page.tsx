@@ -199,9 +199,15 @@ export default function QuickBlogPost({ params }: PageProps) {
             {/* Post Title */}
             {post.title && post.title !== 'Untitled Post' && (
               <div className="b_text">
-                <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 16px 0', color: 'var(--primary-text)' }}>
+                <h1 style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 'bold', 
+                  margin: '0 0 20px 0', 
+                  color: 'var(--primary-text)',
+                  lineHeight: '1.3'
+                }}>
                   {post.title}
-                </h2>
+                </h1>
               </div>
             )}
 

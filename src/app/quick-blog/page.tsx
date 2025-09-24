@@ -242,7 +242,10 @@ export default function QuickBlog() {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Quick Blog</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Quick Blog</h1>
+              <p className="text-sm text-gray-600">Share your thoughts instantly</p>
+            </div>
             <div className="flex items-center gap-4">
               {user ? (
                 <div className="flex items-center gap-3">
@@ -514,7 +517,13 @@ export default function QuickBlog() {
                 {/* Post Title */}
                 {post.title && post.title !== 'Untitled Post' && (
                   <div className="b_text">
-                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 8px 0', color: 'var(--primary-text)' }}>
+                    <h2 style={{ 
+                      fontSize: '20px', 
+                      fontWeight: 'bold', 
+                      margin: '0 0 12px 0', 
+                      color: 'var(--primary-text)',
+                      lineHeight: '1.4'
+                    }}>
                       {post.title}
                     </h2>
                   </div>

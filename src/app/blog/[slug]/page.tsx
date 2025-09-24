@@ -3,8 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import GrandmasterFab from '@/components/grandmaster-fab';
-// Removed MDXContent import to fix hydration issues
+import MDXContent from '@/components/mdx-content';
 
 // Removed unused getTagColor function since we're using Tailwind classes directly
 
@@ -84,6 +83,13 @@ export default async function Page({ params }: IProps) {
             )}
             <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
           </header>
+
+          {/* Post content */}
+          <div className="px-8 py-8">
+            <div className="prose prose-lg max-w-none">
+              <MDXContent code={post.body.code} />
+            </div>
+          </div>
           
           {/* Simple share section */}
           <footer className="px-8 py-6 bg-gray-50 border-t">
@@ -116,12 +122,6 @@ export default async function Page({ params }: IProps) {
             </div>
           </footer>
         </article>
-
-        {/* 🏆 LEGENDARY GRANDMASTER FLOATING ACTION BUTTON 🏆 */}
-        <GrandmasterFab 
-          currentUrl={`${process.env.NEXT_PUBLIC_HOST || 'http://localhost:3000'}/blog/${slug}`}
-          postTitle={post.title}
-        />
       </div>
     </div>
   );

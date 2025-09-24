@@ -29,10 +29,36 @@ function BlogModal({ post, onClose }: { post: any, onClose: () => void }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+        <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button className="modal-close" onClick={onClose}>
             ← Back to Blog
           </button>
+          <Link
+            href={`/blog/${post._raw.flattenedPath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="open-new-tab-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 20px',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+              border: 'none'
+            }}
+          >
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            Open in New Tab
+          </Link>
         </div>
         
         <article className="modal-article">
@@ -89,21 +115,36 @@ export default function Blog() {
             />
           </div>
           <div className="profile-info">
-            <h1 className="profile-name">Nardcart blogs</h1>
-            <p className="profile-title">just a simple blogs for my thinks Quickblogs is a simple blogs for my thinks</p>
+            <h1 className="profile-name">Nardcart Blog</h1>
+            <p className="profile-title">Personal thoughts, tutorials, and tech insights</p>
           </div>
         </div>
 
         {/* Navigation Section */}
         <div className="nav-section">
           <nav className="portfolio-nav">
-            <button className="nav-item active">All work</button>
+            <button className="nav-item active">All Posts</button>
             {allTags.slice(0, 3).map((tag) => (
               <button key={tag} className="nav-item">{tag}</button>
             ))}
             <Link href="/quick-blog" className="nav-item">Quick Blog</Link>
             <button className="nav-item">Search</button>
           </nav>
+        </div>
+
+        {/* Blog Posts Section */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ 
+            color: '#ffffff', 
+            fontSize: '1.5rem', 
+            fontWeight: '600', 
+            marginBottom: '1.5rem',
+            borderBottom: '2px solid #4f46e5',
+            paddingBottom: '0.5rem',
+            display: 'inline-block'
+          }}>
+            Latest Blog Posts
+          </h2>
         </div>
 
         {/* Blog Posts Grid */}
@@ -124,7 +165,9 @@ export default function Blog() {
                   {post.date ? format(parseISO(post.date), 'MMM d') : 'No date'}
                 </time>
               </div>
-              <h3 className="post-title">{post.title || 'Untitled'}</h3>
+              <h3 className="post-title" style={{ fontSize: '1.2rem', lineHeight: '1.4' }}>
+                {post.title || 'Untitled'}
+              </h3>
               <p className="post-read-time">{post.readTime ? `${post.readTime} min read` : 'Quick read'}</p>
             </button>
           ))}
