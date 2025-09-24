@@ -1,0 +1,88 @@
+---
+title: Watermelon Problem (Codeforces 4A) Explained
+date: 2025-09-24
+excerpt: 
+tags: [CP]
+cover: /next.svg
+---
+
+
+One of the classic beginner problems on **Codeforces** is the *Watermelon Problem (Problem 4A)*. It’s a simple yet interesting problem that helps new programmers understand conditional logic in C++.
+
+### Problem Statement
+
+You are given a watermelon of weight **n** (where `1 ≤ n ≤ 100`). Two friends want to divide it into **two even positive parts**. Your task is to determine whether it’s possible to split the watermelon as per their wish.
+
+If the watermelon can be split into two even positive parts, print **YES**, otherwise print **NO**.
+
+### Approach
+
+To solve this problem, we need to check two conditions:
+
+1. The weight must be greater than 2 (since the smallest even split possible is `2 + 2 = 4`).
+2. The weight must be even (because two even parts can only sum up to an even number).
+
+If both conditions are satisfied, then the answer is **YES**, otherwise it is **NO**.
+
+### Code Implementation
+
+```cpp
+// https://codeforces.com/problemset/problem/4/A
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    int n = 0;
+    cin >> n;
+    if (((n - 2) % 2 == 0) && (n - 2 > 0))
+    {
+        cout << "YES";
+    }
+    else
+    {
+        cout << "NO";
+    }
+    puts("");
+    return 0;
+}
+```
+
+### Code Explanation
+
+1. **Input Handling**:
+   We declare an integer variable `n` and read the input using `cin`. This represents the watermelon’s weight.
+
+2. **Logic Check**:
+
+   * `(n - 2) % 2 == 0` ensures that after removing 2 from the weight, the remainder is still even.
+   * `(n - 2 > 0)` ensures that the split results in two **positive** even numbers.
+
+   Together, these checks confirm if the watermelon can be split into two even parts.
+
+3. **Output**:
+
+   * If the conditions are satisfied, we print **YES**.
+   * Otherwise, we print **NO**.
+
+4. **End of Program**:
+   The `puts("")` prints a newline character, and `return 0;` indicates successful program execution.
+
+### Example Runs
+
+* **Input:** `8`
+  **Output:** `YES`
+  (The watermelon can be split into `4 + 4`.)
+
+* **Input:** `5`
+  **Output:** `NO`
+  (Since 5 is odd, it can’t be split into two even parts.)
+
+* **Input:** `2`
+  **Output:** `NO`
+  (Although 2 is even, it can’t be split into two positive even parts.)
+
+### Conclusion
+
+The Watermelon problem is a great warm-up exercise for beginners learning C++. It introduces **conditional statements**, **modulo operation**, and **input/output handling**. Despite its simplicity, it reinforces the importance of **breaking down conditions carefully** when solving programming problems.
+

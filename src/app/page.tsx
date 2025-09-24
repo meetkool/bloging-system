@@ -89,8 +89,8 @@ export default function Blog() {
             />
           </div>
           <div className="profile-info">
-            <h1 className="profile-name">My Blog</h1>
-            <p className="profile-title">npm run dev && git commit -m "new post"</p>
+            <h1 className="profile-name">Nardcart blogs</h1>
+            <p className="profile-title">just a simple blogs for my thinks Quickblogs is a simple blogs for my thinks</p>
           </div>
         </div>
 

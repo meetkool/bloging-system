@@ -1,0 +1,142 @@
+---
+title: Codeforces Problem A – Halloumi Boxes
+date: 2025-09-24
+excerpt: orting problems often have a twist, and **Halloumi Boxes (Problem A)** is a perfect example. At first glance, it seems like a normal sorting challenge — but the machine used here can **only reverse subarrays of length at most k**. Let’s break down the problem and understand why the solution is simpler than it looks.
+tags: [CP]
+cover: /next.svg
+---
+
+# Codeforces Problem A – Halloumi Boxes (Solution & Explanation)
+
+Sorting problems often have a twist, and **Halloumi Boxes (Problem A)** is a perfect example. At first glance, it seems like a normal sorting challenge — but the machine used here can **only reverse subarrays of length at most k**. Let’s break down the problem and understand why the solution is simpler than it looks.
+
+
+## Problem Statement
+
+Theofanis has **n boxes**, each labeled with a number `a[i]`. He wants to sort the boxes in **non-decreasing order**, but his machine works in a strange way:
+
+* It can only **reverse any subarray of length ≤ k**.
+* He can perform this operation as many times as he likes.
+
+The task:
+Determine whether it is possible to sort the boxes using this machine.
+
+**Input Format**
+
+* First line: integer `t` (number of test cases).
+* For each test case:
+
+  * Line 1: integers `n` and `k`
+  * Line 2: `n` integers `a1, a2, …, an`
+
+**Output Format**
+For each test case, print **YES** if it’s possible to sort the boxes, otherwise print **NO**.
+
+---
+
+## Key Observations
+
+1. **If the array is already sorted**, the answer is trivially **YES**.
+2. **If k > 1**, we can always sort the array.
+
+   * Why? Because reversing subarrays of size greater than 1 essentially gives us the ability to simulate normal sorting operations.
+   * With enough reversals, any permutation can be sorted.
+3. **If k == 1**, no real sorting can happen.
+
+   * The machine can only reverse a single element (which changes nothing).
+   * So, the array must already be sorted for the answer to be **YES**.
+
+---
+
+## Step-by-Step Solution
+
+* Read `n`, `k`, and the array `a`.
+* Create a copy of `a` and sort it.
+* If:
+
+  * The array is already sorted → **YES**
+  * Or `k > 1` → **YES**
+  * Otherwise → **NO**
+
+---
+
+## Code Implementation
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    int t; // number of test cases
+    cin >> t;
+    while (t--)
+    {
+        long long n, k; 
+        cin >> n >> k; // read n and k
+        vector<long long> a(n);
+        
+        for (int i = 0; i < n; i++)
+            cin >> a[i]; // read array
+        
+        vector<long long> copy_a = a; 
+        sort(copy_a.begin(), copy_a.end()); // sorted version
+        
+        // Check conditions
+        if (copy_a == a || k > 1)
+            cout << "YES" << endl;
+        else
+            cout << "NO" << endl;
+    }
+    return 0;
+}
+```
+
+---
+
+## Complexity Analysis
+
+* **Sorting**: `O(n log n)`
+* For `n ≤ 100`, this is very efficient.
+* **Space complexity**: `O(n)` for storing the copy of the array.
+
+---
+
+## Example Walkthrough
+
+### Input:
+
+```
+3
+3 1
+3 2 1
+4 2
+4 3 2 1
+5 1
+1 2 3 4 5
+```
+
+### Output:
+
+```
+NO
+YES
+YES
+```
+
+**Explanation:**
+
+* Case 1: `k = 1`, array is not sorted → NO
+* Case 2: `k = 2`, any permutation can be sorted → YES
+* Case 3: Array already sorted → YES
+
+---
+
+## Conclusion
+
+The beauty of **Halloumi Boxes** lies in its trick:
+
+* If `k > 1`, sorting is always possible.
+* If `k = 1`, the array must already be sorted.
+
+This is a great problem for practicing **array manipulation logic** and recognizing when operations give you **full control** over sorting.

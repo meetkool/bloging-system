@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { githubAPI, authenticateUser, logoutUser, BlogPost, User, AuthCredentials } from '@/lib/github-api';
@@ -481,7 +482,7 @@ export default function QuickBlog() {
                       </a>
                     </div>
                     <div className="b_options">
-                      <a href="#" className="b_date">
+                      <Link href={`/quick-blog/${post.id}`} className="b_date" target="_blank" rel="noopener noreferrer">
                         {new Date(post.createdAt).toLocaleDateString('en-US', { 
                           month: 'long', 
                           day: 'numeric', 
@@ -489,7 +490,7 @@ export default function QuickBlog() {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
-                      </a>
+                      </Link>
                       {post.location && (
                         <>
                           <span className="b_with"> — at </span>
