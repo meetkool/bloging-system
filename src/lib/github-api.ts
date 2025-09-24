@@ -1,5 +1,8 @@
 // GitHub API integration for Gist-based blog posts
 
+// Import config for default GitHub username
+const defaultGitHubUsername = 'meetkool'; // Fallback username
+
 export interface GistFile {
   filename: string;
   content: string;
@@ -40,6 +43,7 @@ export interface BlogPost {
   location?: string;
   images?: string[];
   tags?: string[];
+  privacy?: 'public' | 'private';
 }
 
 // Simple authentication interface
@@ -112,10 +116,28 @@ class GitHubGistAPI {
     });
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+      // Handle different error types
+      let errorMessage = `GitHub API error: ${response.status} ${response.statusText}`;
+      
+      if (response.status === 404) {
+        errorMessage = 'Post not found - it may have already been deleted';
+      } else if (response.status === 403) {
+        errorMessage = 'Access denied - you may not have permission to perform this action';
+      } else if (response.status === 401) {
+        errorMessage = 'Unauthorized - please log in again';
+      }
+      
+      throw new Error(errorMessage);
     }
 
-    return response.json();
+    // Handle empty responses (like DELETE requests)
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const text = await response.text();
+      return text ? JSON.parse(text) : {};
+    }
+    
+    return {};
   }
 
   // Get current user info (using stored username)
@@ -141,7 +163,19 @@ class GitHubGistAPI {
   // Get blog posts (gists with specific naming convention)
   async getBlogPosts(): Promise<BlogPost[]> {
     try {
-      const gists = await this.getUserGists();
+      let gists: GistData[] = [];
+      
+      if (this.isAuthenticated()) {
+        // User is authenticated - get their own gists
+        console.log('Fetching authenticated user gists');
+        gists = await this.getUserGists();
+      } else {
+        // User is NOT authenticated - get public gists from the default user
+        console.log(`Fetching public gists from user: ${defaultGitHubUsername}`);
+        gists = await this.getUserGists(defaultGitHubUsername);
+      }
+      
+      console.log(`Found ${gists.length} total gists`);
       
       // Filter gists that are blog posts (you can customize this logic)
       const blogGists = gists.filter(gist => 
@@ -151,9 +185,80 @@ class GitHubGistAPI {
         Object.keys(gist.files).length > 0
       );
 
-      return Promise.all(blogGists.map((gist) => this.transformGistToBlogPost(gist)));
+      console.log(`Found ${blogGists.length} blog gists after filtering`);
+
+      // Use Promise.allSettled to handle individual failures gracefully
+      const results = await Promise.allSettled(
+        blogGists.map((gist) => this.transformGistToBlogPost(gist))
+      );
+
+      // Filter successful results and log failures
+      const successfulPosts: BlogPost[] = [];
+      results.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          successfulPosts.push(result.value);
+        } else {
+          const gistId = blogGists[index]?.id || 'unknown';
+          const gistDescription = blogGists[index]?.description || 'unknown';
+          console.warn(`Skipping inaccessible blog post from gist ${gistId} (${gistDescription}):`, result.reason?.message || result.reason);
+        }
+      });
+
+      // Apply privacy filtering
+      const filteredPosts = this.filterPostsByPrivacy(successfulPosts);
+      console.log(`Successfully loaded ${filteredPosts.length} out of ${blogGists.length} blog posts (after privacy filtering)`);
+
+      return filteredPosts;
     } catch (error) {
       console.error('Error fetching blog posts:', error);
+      console.error('Authentication status:', this.isAuthenticated());
+      console.error('Access token exists:', !!this.accessToken);
+      console.error('GitHub username:', this.githubUsername);
+      
+      // Even if there's an error, try to fetch public posts as fallback
+      if (this.isAuthenticated()) {
+        console.log('Falling back to public posts due to error');
+        try {
+          return await this.getPublicBlogPosts();
+        } catch (fallbackError) {
+          console.error('Fallback to public posts also failed:', fallbackError);
+        }
+      }
+      
+      return [];
+    }
+  }
+
+  // Helper method to explicitly get public blog posts
+  private async getPublicBlogPosts(): Promise<BlogPost[]> {
+    try {
+      console.log(`Fetching public blog posts from user: ${defaultGitHubUsername}`);
+      const gists = await this.getUserGists(defaultGitHubUsername);
+      
+      const blogGists = gists.filter(gist => 
+        gist.description && 
+        (gist.description.startsWith('[BLOG]') || gist.description.includes('#blog')) &&
+        gist.files && 
+        Object.keys(gist.files).length > 0
+      );
+
+      const results = await Promise.allSettled(
+        blogGists.map((gist) => this.transformGistToBlogPost(gist))
+      );
+
+      const successfulPosts: BlogPost[] = [];
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          successfulPosts.push(result.value);
+        }
+      });
+
+      // For public posts, only show public privacy posts
+      const publicPosts = successfulPosts.filter(post => post.privacy !== 'private');
+      console.log(`Public blog posts loaded: ${publicPosts.length}`);
+      return publicPosts;
+    } catch (error) {
+      console.error('Error fetching public blog posts:', error);
       return [];
     }
   }
@@ -171,6 +276,7 @@ class GitHubGistAPI {
     location?: string;
     images?: string[];
     tags?: string[];
+    privacy?: 'public' | 'private';
   }): Promise<BlogPost> {
     const filename = `${data.title.toLowerCase().replace(/\s+/g, '-')}.md`;
     
@@ -179,8 +285,30 @@ class GitHubGistAPI {
       location: data.location,
       images: data.images || [],
       tags: data.tags || [],
+      privacy: data.privacy || 'public',
       createdAt: new Date().toISOString(),
     };
+
+    // Create enhanced content with images if provided
+    let enhancedContent = data.content;
+    
+    // If images are provided and not already in content, add them
+    if (data.images && data.images.length > 0) {
+      const existingImages = new Set();
+      // Extract existing image URLs from content
+      const imageRegex = /!\[.*?\]\(([^)]+)\)/g;
+      let match;
+      while ((match = imageRegex.exec(data.content)) !== null) {
+        existingImages.add(match[1]);
+      }
+      
+      // Add any new images that aren't already in the content
+      const newImages = data.images.filter(img => !existingImages.has(img));
+      if (newImages.length > 0) {
+        const imageMarkdown = newImages.map(img => `![Image](${img})`).join('\n\n');
+        enhancedContent = data.content + (data.content ? '\n\n' : '') + imageMarkdown;
+      }
+    }
 
     // Combine content with metadata as frontmatter
     const fullContent = `---
@@ -188,14 +316,15 @@ title: ${data.title}
 location: ${data.location || ''}
 images: ${JSON.stringify(data.images || [])}
 tags: ${JSON.stringify(data.tags || [])}
+privacy: ${metadata.privacy}
 createdAt: ${metadata.createdAt}
 ---
 
-${data.content}`;
+${enhancedContent}`;
 
     const gistData = {
       description: `[BLOG] ${data.title} ${data.description ? `- ${data.description}` : ''}`,
-      public: true,
+      public: data.privacy !== 'private', // Set gist to private if post privacy is private
       files: {
         [filename]: {
           content: fullContent,
@@ -219,6 +348,7 @@ ${data.content}`;
     location?: string;
     images?: string[];
     tags?: string[];
+    privacy?: 'public' | 'private';
   }): Promise<BlogPost> {
     const gist = await this.getGist(gistId);
     const filename = Object.keys(gist.files)[0];
@@ -234,22 +364,58 @@ ${data.content}`;
       ...(data.location !== undefined && { location: data.location }),
       ...(data.images && { images: data.images }),
       ...(data.tags && { tags: data.tags }),
+      ...(data.privacy && { privacy: data.privacy }),
       updatedAt: new Date().toISOString(),
     };
+
+    // Create enhanced content with images if provided
+    let enhancedContent = data.content || currentContent;
+    
+    // If images are provided in the update, handle them
+    if (data.images && data.images.length > 0) {
+      const existingImages = new Set();
+      // Extract existing image URLs from content
+      const imageRegex = /!\[.*?\]\(([^)]+)\)/g;
+      let match;
+      while ((match = imageRegex.exec(enhancedContent)) !== null) {
+        existingImages.add(match[1]);
+      }
+      
+      // Add any new images that aren't already in the content
+      const newImages = data.images.filter(img => !existingImages.has(img));
+      if (newImages.length > 0) {
+        const imageMarkdown = newImages.map(img => `![Image](${img})`).join('\n\n');
+        enhancedContent = enhancedContent + (enhancedContent ? '\n\n' : '') + imageMarkdown;
+      }
+    }
 
     const updatedContent = `---
 title: ${updatedMetadata.title || metadata.title}
 location: ${updatedMetadata.location || ''}
 images: ${JSON.stringify(updatedMetadata.images || [])}
 tags: ${JSON.stringify(updatedMetadata.tags || [])}
+privacy: ${updatedMetadata.privacy || metadata.privacy || 'public'}
 createdAt: ${metadata.createdAt}
 updatedAt: ${updatedMetadata.updatedAt}
 ---
 
-${data.content || currentContent}`;
+${enhancedContent}`;
+
+    // Get the current description without the [BLOG] prefix and clean it up
+    const currentDescription = gist.description.replace(/^\[BLOG\]\s*/, '').trim();
+    
+    // Extract just the title part and any additional description
+    const titleMatch = currentDescription.match(/^(.+?)(?:\s*-\s*(.*))?$/);
+    const originalExtraDescription = titleMatch ? titleMatch[2] : '';
+    
+    // Build new description
+    const newTitle = updatedMetadata.title || metadata.title || 'Untitled Post';
+    const descriptionPart = data.description || originalExtraDescription;
+    const newDescription = `[BLOG] ${newTitle}${descriptionPart ? ` - ${descriptionPart}` : ''}`;
 
     const updateData = {
-      description: `[BLOG] ${updatedMetadata.title} ${data.description ? `- ${data.description}` : ''}`,
+      description: newDescription,
+      public: (updatedMetadata.privacy || metadata.privacy || 'public') !== 'private', // Update gist visibility
       files: {
         [filename]: {
           content: updatedContent,
@@ -277,18 +443,7 @@ ${data.content || currentContent}`;
     // Ensure gist has files
     if (!gist.files || Object.keys(gist.files).length === 0) {
       console.warn('Gist has no files:', gist.id);
-      return {
-        id: gist.id,
-        title: 'Untitled',
-        content: 'No content available',
-        description: gist.description.replace('[BLOG]', '').trim(),
-        createdAt: gist.created_at,
-        updatedAt: gist.updated_at,
-        author: {
-          login: gist.owner.login,
-          avatar_url: gist.owner.avatar_url,
-        },
-      };
+      throw new Error(`Gist ${gist.id} has no files and should be skipped`);
     }
     
     const filename = Object.keys(gist.files)[0];
@@ -297,18 +452,7 @@ ${data.content || currentContent}`;
     // Ensure file exists
     if (!file) {
       console.warn('Gist file not found:', gist.id, filename);
-      return {
-        id: gist.id,
-        title: filename ? filename.replace('.md', '').replace(/-/g, ' ') : 'Untitled',
-        content: 'No content available',
-        description: gist.description.replace('[BLOG]', '').trim(),
-        createdAt: gist.created_at,
-        updatedAt: gist.updated_at,
-        author: {
-          login: gist.owner.login,
-          avatar_url: gist.owner.avatar_url,
-        },
-      };
+      throw new Error(`Gist ${gist.id} file ${filename} not found and should be skipped`);
     }
 
     let fileContent = file.content;
@@ -368,6 +512,10 @@ ${data.content || currentContent}`;
         }
       } catch (error) {
         console.error('Error fetching full gist:', error, gist.id);
+        // If the gist is deleted or inaccessible, throw an error to skip it entirely
+        if (error instanceof Error && error.message.includes('Post not found')) {
+          throw new Error(`Gist ${gist.id} is no longer accessible and should be skipped`);
+        }
       }
     }
 
@@ -382,18 +530,8 @@ ${data.content || currentContent}`;
     // Ensure content exists after potential fetch
     if (!fileContent || typeof fileContent !== 'string' || fileContent.trim().length === 0) {
       console.warn('Gist file has no content after processing:', gist.id, filename);
-      return {
-        id: gist.id,
-        title: filename ? filename.replace('.md', '').replace(/-/g, ' ') : 'Untitled',
-        content: 'No content available',
-        description: gist.description.replace('[BLOG]', '').trim(),
-        createdAt: gist.created_at,
-        updatedAt: gist.updated_at,
-        author: {
-          login: gist.owner.login,
-          avatar_url: gist.owner.avatar_url,
-        },
-      };
+      // Instead of creating a placeholder post, throw an error to skip this gist entirely
+      throw new Error(`Gist ${gist.id} has no accessible content and should be skipped`);
     }
     
     const { content, metadata } = this.parseMarkdownWithFrontmatter(fileContent);
@@ -412,6 +550,7 @@ ${data.content || currentContent}`;
       location: metadata.location as string,
       images: metadata.images as string[],
       tags: metadata.tags as string[],
+      privacy: (metadata.privacy as 'public' | 'private') || 'public',
     };
   }
 
@@ -449,6 +588,20 @@ ${data.content || currentContent}`;
     });
 
     return { content: markdownContent.trim(), metadata };
+  }
+
+  // Filter posts based on privacy and authentication status
+  private filterPostsByPrivacy(posts: BlogPost[]): BlogPost[] {
+    if (this.isAuthenticated()) {
+      // Authenticated users see all their posts (private and public)
+      console.log('User authenticated - showing all posts');
+      return posts;
+    } else {
+      // Non-authenticated users only see public posts
+      const publicPosts = posts.filter(post => post.privacy !== 'private');
+      console.log(`Non-authenticated user - filtering to ${publicPosts.length} public posts out of ${posts.length} total`);
+      return publicPosts;
+    }
   }
 }
 

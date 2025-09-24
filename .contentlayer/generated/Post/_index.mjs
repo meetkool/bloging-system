@@ -5,5 +5,6 @@ import ertyuioyuiMdx from './ertyuioyui.mdx.json' assert { type: 'json' }
 import kjkkjMdx from './kjkkj.mdx.json' assert { type: 'json' }
 import kooljoolMdx from './kooljool.mdx.json' assert { type: 'json' }
 import myFirstPostMdx from './my-first-post.mdx.json' assert { type: 'json' }
+import popopoMdx from './popopo.mdx.json' assert { type: 'json' }
 
-export const allPosts = [automaticBlogGenerationMdx, ertyuioyuiMdx, kjkkjMdx, kooljoolMdx, myFirstPostMdx]
+export const allPosts = [automaticBlogGenerationMdx, ertyuioyuiMdx, kjkkjMdx, kooljoolMdx, myFirstPostMdx, popopoMdx]

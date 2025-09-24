@@ -1179,118 +1179,109 @@ body {
 }
 
 /* ===============================================
-   🏆 LEGENDARY FLOATING ACTION BUTTON STYLES 🏆
+   ♛ GRANDMASTER FLOATING ACTION BUTTON STYLES ♛
    =============================================== */
 
-/* Main container for the floating action button */
-.legendary-fab-container {
+/* Main container for the Grandmaster floating action button */
+.grandmaster-fab-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 24px;
+  right: 24px;
   z-index: 10000;
   pointer-events: none;
 }
 
-/* Main button styling */
-.legendary-fab {
+/* Main Grandmaster button styling */
+.grandmaster-fab {
   position: relative;
-  width: 70px;
-  height: 70px;
+  width: 80px;
+  height: 80px;
   border: none;
-  border-radius: 50%;
+  border-radius: 20px;
   cursor: pointer;
   pointer-events: all;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   box-shadow: 
-    0 8px 32px rgba(102, 126, 234, 0.3),
-    0 4px 16px rgba(102, 126, 234, 0.2),
-    0 2px 8px rgba(102, 126, 234, 0.1);
-  transform: scale(1);
-  backdrop-filter: blur(10px);
+    0 12px 40px rgba(59, 130, 246, 0.25),
+    0 6px 20px rgba(147, 51, 234, 0.15),
+    0 3px 10px rgba(17, 24, 39, 0.1);
+  transform: scale(1) rotate(0deg);
+  backdrop-filter: blur(20px);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
 }
 
-/* Multi-layered animated backgrounds */
-.fab-bg-layer-1 {
+/* Chess board pattern background */
+.chess-board-bg {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  border-radius: 50%;
-  animation: rotateGradient 8s ease-in-out infinite;
+  background: 
+    linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+    linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%), 
+    linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  border-radius: 20px;
+  animation: chessboardShift 8s ease-in-out infinite;
+  opacity: 0.3;
 }
 
-.fab-bg-layer-2 {
+/* Knight's L-shaped movement paths */
+.knight-path-1, .knight-path-2, .knight-path-3 {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  background: linear-gradient(225deg, #4facfe 0%, #00f2fe 50%, #667eea 100%);
+  width: 4px;
+  height: 4px;
+  background: rgba(59, 130, 246, 0.6);
   border-radius: 50%;
-  opacity: 0.8;
-  animation: rotateGradient 12s ease-in-out infinite reverse;
-}
-
-.fab-bg-layer-3 {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  right: 4px;
-  bottom: 4px;
-  background: linear-gradient(45deg, #a8edea 0%, #fed6e3 50%, #d299c2 100%);
-  border-radius: 50%;
-  opacity: 0.6;
-  animation: morphShape 6s ease-in-out infinite;
-}
-
-/* Ripple effects */
-.fab-ripple-1, .fab-ripple-2, .fab-ripple-3 {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  border: 2px solid rgba(102, 126, 234, 0.4);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
-.fab-ripple-1 {
-  animation: rippleEffect 3s ease-out infinite;
+.knight-path-1 {
+  top: 15px;
+  left: 25px;
+  animation: knightMove1 4s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
 }
 
-.fab-ripple-2 {
-  animation: rippleEffect 3s ease-out infinite 1s;
+.knight-path-2 {
+  top: 35px;
+  right: 15px;
+  animation: knightMove2 5s ease-in-out infinite 1s;
+  box-shadow: 0 0 8px rgba(147, 51, 234, 0.8);
 }
 
-.fab-ripple-3 {
-  animation: rippleEffect 3s ease-out infinite 2s;
+.knight-path-3 {
+  bottom: 20px;
+  left: 35px;
+  animation: knightMove3 6s ease-in-out infinite 2s;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
 }
 
-/* Liquid flow overlay */
-.fab-liquid-overlay {
+/* Strategic liquid flow like thinking ahead */
+.strategic-flow {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.2) 50%,
-    transparent 70%
+    60deg,
+    transparent 20%,
+    rgba(59, 130, 246, 0.3) 40%,
+    rgba(147, 51, 234, 0.2) 60%,
+    transparent 80%
   );
-  border-radius: 50%;
-  animation: liquidFlow 2s ease-in-out infinite;
+  border-radius: 20px;
+  animation: strategicThinking 3s ease-in-out infinite;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Icon container */
+/* Icon container with chess crown */
 .fab-icon-container {
   position: relative;
   width: 100%;
@@ -1298,14 +1289,37 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 15;
 }
 
-.fab-icon {
-  color: white;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-  transition: all 0.3s ease;
-  animation: iconFloat 4s ease-in-out infinite;
+.chess-crown {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border-radius: 50%;
+  opacity: 0;
+  animation: crownAppear 2s ease-in-out infinite 1s;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.5);
+}
+
+.chess-crown::before {
+  content: '♛';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: #92400e;
+}
+
+.main-icon {
+  color: #e2e8f0;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: grandmasterFloat 5s ease-in-out infinite;
 }
 
 /* Floating particles */
@@ -1445,158 +1459,321 @@ body {
   75% { transform: translateY(2px) rotate(-5deg); }
 }
 
-@keyframes floatParticle1 {
-  0%, 100% { transform: translate(0, 0); opacity: 0.8; }
-  33% { transform: translate(10px, -8px); opacity: 1; }
-  66% { transform: translate(-5px, 12px); opacity: 0.6; }
-}
-
-@keyframes floatParticle2 {
+/* Knight's L-shaped movement animations */
+@keyframes knightMove1 {
   0%, 100% { transform: translate(0, 0); opacity: 0.6; }
-  25% { transform: translate(-8px, 10px); opacity: 1; }
-  50% { transform: translate(12px, -5px); opacity: 0.8; }
-  75% { transform: translate(-6px, -8px); opacity: 0.9; }
+  25% { transform: translate(20px, -10px); opacity: 1; }
+  50% { transform: translate(10px, -20px); opacity: 0.8; }
+  75% { transform: translate(-5px, 15px); opacity: 0.9; }
 }
 
-@keyframes floatParticle3 {
-  0%, 100% { transform: translate(0, 0); opacity: 0.9; }
-  40% { transform: translate(8px, -12px); opacity: 0.7; }
-  80% { transform: translate(-10px, 6px); opacity: 1; }
-}
-
-@keyframes floatParticle4 {
+@keyframes knightMove2 {
   0%, 100% { transform: translate(0, 0); opacity: 0.7; }
-  30% { transform: translate(-6px, -10px); opacity: 1; }
-  60% { transform: translate(8px, 8px); opacity: 0.8; }
+  33% { transform: translate(-15px, 20px); opacity: 1; }
+  66% { transform: translate(15px, -15px); opacity: 0.8; }
 }
 
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.1); }
+@keyframes knightMove3 {
+  0%, 100% { transform: translate(0, 0); opacity: 0.5; }
+  40% { transform: translate(10px, -20px); opacity: 1; }
+  80% { transform: translate(-20px, 10px); opacity: 0.9; }
+}
+
+/* Chess piece floating animations */
+@keyframes floatQueen {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.7; }
+  25% { transform: translate(12px, -8px) rotate(90deg); opacity: 1; }
+  50% { transform: translate(-8px, 15px) rotate(180deg); opacity: 0.8; }
+  75% { transform: translate(10px, -12px) rotate(270deg); opacity: 0.9; }
+}
+
+@keyframes floatKnight {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
+  30% { transform: translate(-10px, 12px) rotate(45deg); opacity: 1; }
+  60% { transform: translate(15px, -6px) rotate(-45deg); opacity: 0.8; }
+}
+
+@keyframes floatBishop {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.8; }
+  35% { transform: translate(8px, -15px) rotate(135deg); opacity: 1; }
+  70% { transform: translate(-12px, 8px) rotate(-135deg); opacity: 0.7; }
+}
+
+@keyframes floatRook {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.7; }
+  50% { transform: translate(-8px, -8px) rotate(180deg); opacity: 1; }
+}
+
+/* Chess shadow animations */
+@keyframes queenShadow {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.5); opacity: 0.7; }
+}
+
+@keyframes knightShadow {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.3; }
+  50% { transform: scale(1.3) rotate(180deg); opacity: 0.6; }
+}
+
+@keyframes bishopShadow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  33% { transform: scale(1.2); opacity: 0.8; }
+  66% { transform: scale(0.8); opacity: 0.3; }
+}
+
+@keyframes grandmasterAura {
+  0%, 100% { 
+    opacity: 0.2; 
+    transform: scale(1) rotate(0deg); 
+  }
+  50% { 
+    opacity: 0.5; 
+    transform: scale(1.1) rotate(180deg); 
+  }
+}
+
+@keyframes victoryGlow {
+  0%, 100% { 
+    opacity: 0; 
+    transform: scale(1) rotate(0deg); 
+  }
+  50% { 
+    opacity: 0.6; 
+    transform: scale(1.2) rotate(360deg); 
+  }
 }
 
 /* ===============================================
-   🎯 HOVER & INTERACTION EFFECTS 🎯
+   ♛ GRANDMASTER HOVER & INTERACTION EFFECTS ♛
    =============================================== */
 
-.legendary-fab:hover {
-  transform: scale(1.15);
+.grandmaster-fab:hover {
+  transform: scale(1.2) rotate(5deg);
   box-shadow: 
-    0 12px 48px rgba(102, 126, 234, 0.4),
-    0 8px 24px rgba(102, 126, 234, 0.3),
-    0 4px 12px rgba(102, 126, 234, 0.2);
+    0 16px 64px rgba(59, 130, 246, 0.4),
+    0 8px 32px rgba(147, 51, 234, 0.3),
+    0 4px 16px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(135deg, #334155 0%, #475569 50%, #64748b 100%);
 }
 
-.legendary-fab:hover .fab-liquid-overlay {
+.grandmaster-fab:hover .strategic-flow {
   opacity: 1;
-  animation-duration: 1s;
+  animation-duration: 1.5s;
 }
 
-.legendary-fab:hover .fab-glow {
+.grandmaster-fab:hover .grandmaster-aura {
   opacity: 0.8;
+  animation-duration: 3s;
+  transform: scale(1.3);
+}
+
+.grandmaster-fab:hover .victory-glow {
+  opacity: 0.6;
   animation-duration: 2s;
 }
 
-.legendary-fab:hover .fab-icon {
-  transform: scale(1.2);
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+.grandmaster-fab:hover .main-icon {
+  transform: scale(1.3) rotate(-5deg);
+  filter: drop-shadow(0 6px 12px rgba(59, 130, 246, 0.5));
+  color: #ffffff;
 }
 
-.legendary-fab:hover + .fab-tooltip {
+.grandmaster-fab:hover .chess-crown {
+  animation-duration: 1s;
+}
+
+.grandmaster-fab:hover + .grandmaster-tooltip {
   opacity: 1;
   transform: translateY(-50%) translateX(0) scale(1);
 }
 
-.legendary-fab:active {
-  transform: scale(1.05);
+.grandmaster-fab:active {
+  transform: scale(1.1) rotate(2deg);
+}
+
+/* Checkmate effect on click */
+.grandmaster-fab:active .victory-glow {
+  opacity: 1;
+  animation: victoryGlow 0.6s ease-out;
 }
 
 /* ===============================================
-   📱 RESPONSIVE DESIGN 📱
+   📱 GRANDMASTER RESPONSIVE DESIGN 📱
    =============================================== */
 
 @media (max-width: 768px) {
-  .legendary-fab-container {
-    top: 15px;
-    right: 15px;
+  .grandmaster-fab-container {
+    top: 16px;
+    right: 16px;
   }
   
-  .legendary-fab {
-    width: 60px;
-    height: 60px;
+  .grandmaster-fab {
+    width: 70px;
+    height: 70px;
   }
   
-  .fab-icon {
-    width: 20px;
-    height: 20px;
+  .main-icon {
+    width: 22px;
+    height: 22px;
   }
   
-  .fab-tooltip {
-    font-size: 11px;
-    padding: 6px 10px;
-    right: calc(100% + 12px);
+  .grandmaster-tooltip {
+    right: calc(100% + 15px);
+  }
+  
+  .tooltip-text {
+    font-size: 12px;
+  }
+  
+  .tooltip-subtitle {
+    font-size: 10px;
   }
 }
 
 @media (max-width: 480px) {
-  .legendary-fab {
-    width: 56px;
-    height: 56px;
+  .grandmaster-fab {
+    width: 64px;
+    height: 64px;
   }
   
-  .fab-tooltip {
+  .main-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .grandmaster-tooltip {
     display: none; /* Hide tooltip on very small screens */
+  }
+  
+  .floating-piece {
+    font-size: 12px;
   }
 }
 
 /* ===============================================
-   🎪 SPECIAL EFFECTS & ACCESSIBILITY 🎪
+   ♛ GRANDMASTER SPECIAL EFFECTS & ACCESSIBILITY ♛
    =============================================== */
 
 /* Reduce animations for users who prefer reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .legendary-fab,
-  .fab-bg-layer-1,
-  .fab-bg-layer-2,
-  .fab-bg-layer-3,
-  .fab-ripple-1,
-  .fab-ripple-2,
-  .fab-ripple-3,
-  .fab-liquid-overlay,
-  .fab-icon,
-  .fab-particle,
-  .fab-glow {
+  .grandmaster-fab,
+  .chess-board-bg,
+  .knight-path-1,
+  .knight-path-2,
+  .knight-path-3,
+  .chess-shadow,
+  .strategic-flow,
+  .main-icon,
+  .floating-piece,
+  .grandmaster-aura,
+  .victory-glow,
+  .chess-crown {
     animation: none !important;
   }
   
-  .legendary-fab {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  .grandmaster-fab {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 }
 
 /* Focus styles for keyboard navigation */
-.legendary-fab:focus {
+.grandmaster-fab:focus {
   outline: none;
   box-shadow: 
-    0 12px 48px rgba(102, 126, 234, 0.4),
-    0 8px 24px rgba(102, 126, 234, 0.3),
-    0 4px 12px rgba(102, 126, 234, 0.2),
-    0 0 0 3px rgba(102, 126, 234, 0.5);
+    0 16px 64px rgba(59, 130, 246, 0.5),
+    0 8px 32px rgba(147, 51, 234, 0.4),
+    0 4px 16px rgba(16, 185, 129, 0.3),
+    0 0 0 4px rgba(59, 130, 246, 0.6);
 }
 
-.legendary-fab:focus + .fab-tooltip {
+.grandmaster-fab:focus + .grandmaster-tooltip {
   opacity: 1;
   transform: translateY(-50%) translateX(0) scale(1);
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .legendary-fab {
+  .grandmaster-fab {
+    border: 3px solid white;
+    background: #000000 !important;
+  }
+  
+  .grandmaster-tooltip {
+    background: black;
     border: 2px solid white;
   }
   
-  .fab-tooltip {
-    background: black;
-    border: 1px solid white;
+  .main-icon {
+    color: white !important;
   }
+  
+  .floating-piece {
+    color: white !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .grandmaster-fab-container {
+    display: none;
+  }
+}
+
+/* Prefers color scheme dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .grandmaster-fab {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    box-shadow: 
+      0 12px 40px rgba(59, 130, 246, 0.3),
+      0 6px 20px rgba(147, 51, 234, 0.2),
+      0 3px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ===============================================
+   ♛ GRANDMASTER VICTORY CELEBRATIONS ♛
+   =============================================== */
+
+/* Special checkmate celebration effect */
+.grandmaster-fab.checkmate {
+  animation: checkmateVictory 2s ease-out;
+}
+
+@keyframes checkmateVictory {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.3) rotate(180deg);
+    box-shadow: 0 20px 80px rgba(251, 191, 36, 0.6);
+  }
+  50% {
+    transform: scale(1.1) rotate(360deg);
+    box-shadow: 0 16px 64px rgba(59, 130, 246, 0.8);
+  }
+  75% {
+    transform: scale(1.25) rotate(540deg);
+    box-shadow: 0 20px 80px rgba(147, 51, 234, 0.6);
+  }
+  100% {
+    transform: scale(1) rotate(720deg);
+    box-shadow: 0 12px 40px rgba(16, 185, 129, 0.4);
+  }
+}
+
+/* Legendary tooltip crown enhancement */
+.grandmaster-tooltip::before {
+  content: '♛';
+  position: absolute;
+  top: -8px;
+  left: 8px;
+  font-size: 16px;
+  color: #fbbf24;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: crownBob 2s ease-in-out infinite;
+}
+
+@keyframes crownBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
