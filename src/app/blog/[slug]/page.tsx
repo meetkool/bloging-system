@@ -3,9 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import MDXContent from '@/components/mdx-content';
-
-// Removed unused getTagColor function since we're using Tailwind classes directly
+import MDXContentWrapper from '@/components/mdx-content-wrapper';
 
 interface IProps {
   params: Promise<{ slug: string }>;
@@ -87,7 +85,7 @@ export default async function Page({ params }: IProps) {
           {/* Post content */}
           <div className="px-8 py-8">
             <div className="prose prose-lg max-w-none">
-              <MDXContent code={post.body.code} />
+              <MDXContentWrapper code={post.body.code} />
             </div>
           </div>
           

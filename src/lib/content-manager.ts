@@ -7,6 +7,45 @@ import {
   ContentManager as IContentManager 
 } from '@/types/blog-editor';
 
+/**
+ * Sanitizes a string to prevent XSS attacks
+ * Escapes HTML special characters
+ */
+function sanitizeString(str: string | undefined): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, '&#039;');
+}
+
+/**
+ * Validates and sanitizes a URL to prevent XSS and dangerous protocols
+ * Only allows http, https, and relative URLs
+ */
+function sanitizeUrl(url: string | undefined): string {
+  if (!url) return '';
+  
+  try {
+    const parsedUrl = new URL(url);
+    // Only allow http, https protocols
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      console.warn('Blocked unsafe URL protocol:', parsedUrl.protocol);
+      return '';
+    }
+    return parsedUrl.href;
+  } catch {
+    // If URL parsing fails, treat as relative path
+    if (url.startsWith('/') || url.startsWith('./') || url.startsWith('../')) {
+      return url;
+    }
+    console.warn('Invalid URL:', url);
+    return '';
+  }
+}
+
 export class ContentManager implements IContentManager {
   public currentContent: ContentData | null = null;
   public isContentSet: boolean = false;
@@ -71,11 +110,13 @@ export class ContentManager implements IContentManager {
     const linkCard = document.createElement('div');
     linkCard.className = 'link-card';
     
+    // Sanitize thumbnail URL
+    const sanitizedThumb = sanitizeUrl(data.thumb);
     // Thumbnail
-    if (data.thumb) {
+    if (sanitizedThumb) {
       const thumbnail = document.createElement('div');
       thumbnail.className = 'link-card__thumbnail';
-      thumbnail.style.backgroundImage = `url(${data.thumb})`;
+      thumbnail.style.backgroundImage = `url(${sanitizedThumb})`;
       linkCard.appendChild(thumbnail);
     }
     
@@ -83,24 +124,24 @@ export class ContentManager implements IContentManager {
     const content = document.createElement('div');
     content.className = 'link-card__content';
     
-    // Title
+    // Title - sanitize to prevent XSS
     const title = document.createElement('div');
     title.className = 'link-card__title';
-    title.textContent = data.title;
+    title.textContent = sanitizeString(data.title);
     content.appendChild(title);
     
-    // Description
+    // Description - sanitize to prevent XSS
     if (data.desc) {
       const description = document.createElement('div');
       description.className = 'link-card__description';
-      description.textContent = data.desc;
+      description.textContent = sanitizeString(data.desc);
       content.appendChild(description);
     }
     
-    // Host/URL
+    // Host/URL - sanitize to prevent XSS
     const host = document.createElement('div');
     host.className = 'link-card__host';
-    host.textContent = data.host;
+    host.textContent = sanitizeString(data.host);
     content.appendChild(host);
     
     // Video indicator
@@ -117,10 +158,13 @@ export class ContentManager implements IContentManager {
     
     linkCard.appendChild(content);
     
-    // Make the entire card clickable
-    linkCard.addEventListener('click', () => {
-      window.open(data.link, '_blank', 'noopener,noreferrer');
-    });
+    // Make the entire card clickable - sanitize URL
+    const sanitizedLink = sanitizeUrl(data.link);
+    if (sanitizedLink) {
+      linkCard.addEventListener('click', () => {
+        window.open(sanitizedLink, '_blank', 'noopener,noreferrer');
+      });
+    }
     
     // Add remove button
     const removeButton = this.createRemoveButton();
@@ -137,21 +181,26 @@ export class ContentManager implements IContentManager {
     const imageWrapper = document.createElement('div');
     imageWrapper.className = 'image-link-wrapper';
     
+    // Sanitize image source URL
+    const sanitizedSrc = sanitizeUrl(data.src);
+    
     const image = document.createElement('img');
-    image.src = data.src;
+    image.src = sanitizedSrc;
     image.alt = 'Linked image';
     image.className = 'image-link';
     image.loading = 'lazy';
     
-    // Add click handler to open image in new tab
-    image.addEventListener('click', () => {
-      window.open(data.src, '_blank', 'noopener,noreferrer');
-    });
+    // Add click handler to open image in new tab - sanitize URL
+    if (sanitizedSrc) {
+      image.addEventListener('click', () => {
+        window.open(sanitizedSrc, '_blank', 'noopener,noreferrer');
+      });
+    }
     
-    // Host info
+    // Host info - sanitize to prevent XSS
     const hostInfo = document.createElement('div');
     hostInfo.className = 'image-link__host';
-    hostInfo.textContent = data.host;
+    hostInfo.textContent = sanitizeString(data.host);
     
     imageWrapper.appendChild(image);
     imageWrapper.appendChild(hostInfo);
@@ -171,24 +220,27 @@ export class ContentManager implements IContentManager {
     const imageWrapper = document.createElement('div');
     imageWrapper.className = 'uploaded-image-wrapper';
     
+    // Sanitize image path URL
+    const sanitizedPath = sanitizeUrl(data.path);
+    
     // Main image
     const image = document.createElement('img');
-    image.src = data.path;
-    image.alt = data.name;
+    image.src = sanitizedPath;
+    image.alt = sanitizeString(data.name);
     image.className = 'uploaded-image';
     image.loading = 'lazy';
     
-    // Image info
+    // Image info - sanitize filename
     const imageInfo = document.createElement('div');
     imageInfo.className = 'uploaded-image__info';
     
     const fileName = document.createElement('div');
     fileName.className = 'uploaded-image__name';
-    fileName.textContent = data.name;
+    fileName.textContent = sanitizeString(data.name);
     
     const fileType = document.createElement('div');
     fileType.className = 'uploaded-image__type';
-    fileType.textContent = data.type.toUpperCase();
+    fileType.textContent = sanitizeString(data.type).toUpperCase();
     
     imageInfo.appendChild(fileName);
     imageInfo.appendChild(fileType);

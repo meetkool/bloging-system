@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { githubAPI, authenticateUser, logoutUser, BlogPost, User, AuthCredentials } from '@/lib/github-api';
 import GitHubGistEditor from '@/components/github-gist-editor';
 import PostToolsDropdown from '@/components/post-tools-dropdown';
 import EditPostModal from '@/components/edit-post-modal';
@@ -13,25 +12,43 @@ import DeleteConfirmationModal from '@/components/delete-confirmation-modal';
 import { PostData } from '@/types/blog-editor';
 import '@/styles/blog-editor.css';
 
+import { BlogPost, GistData } from '@/lib/github-api';
+
 export default function QuickBlog() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [posts, setPosts] = useState<GistData[]>([]);
+  const [user, setUser] = useState<{ name: string; avatar_url: string; github_username: string; token?: string } | null>(null);
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostTitle, setNewPostTitle] = useState('');
   const [newPostPrivacy, setNewPostPrivacy] = useState<'public' | 'private'>('public');
   const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string>('');
-  
+  const [theme, setTheme] = useState<'light' | 'system' | 'dark'>('system');
+
   // Read more functionality
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
-  
+
+  // Initialize theme from localStorage or default to system
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('blog-theme');
+    if (storedTheme === 'light' || storedTheme === 'system' || storedTheme === 'dark') {
+      setTheme(storedTheme as 'light' | 'system' | 'dark');
+      document.documentElement.setAttribute('data-theme', storedTheme);
+    } else {
+      document.documentElement.setAttribute('data-theme', 'system');
+    }
+  }, []);
+
+  // Set theme function
+  const setThemeMode = (newTheme: 'light' | 'system' | 'dark') => {
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('blog-theme', newTheme);
+  };
+
   // Login form state
   const [showLogin, setShowLogin] = useState(false);
-  const [loginCredentials, setLoginCredentials] = useState<AuthCredentials>({
-    username: '',
-    password: '',
-  });
+  const [loginCredentials, setLoginCredentials] = useState({ username: '', password: '' });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState('');
 
@@ -44,10 +61,82 @@ export default function QuickBlog() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Parse content from a gist
+  const parseGistContent = (gist: GistData): { title: string; content: string; tags: string[]; privacy: string; location: string } => {
+    const filename = Object.keys(gist.files)[0];
+    const fileContent = gist.files[filename]?.content || '';
+
+    // Extract frontmatter
+    const frontmatterMatch = fileContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+
+    if (frontmatterMatch) {
+      const [, frontmatter, markdown] = frontmatterMatch;
+      const titleMatch = frontmatter.match(/title:\s*"([^"]+)"/);
+      const tagsMatch = frontmatter.match(/tags:\s*(\[[^\]]+\])/);
+      const locationMatch = frontmatter.match(/location:\s*"([^"]+)"/);
+
+      return {
+        title: titleMatch ? titleMatch[1] : filename.replace('.md', '').replace(/-/g, ' '),
+        content: markdown,
+        tags: tagsMatch ? JSON.parse(tagsMatch[1]) : [],
+        privacy: gist.public ? 'public' : 'private',
+        location: locationMatch ? locationMatch[1] : '',
+      };
+    }
+
+    return {
+      title: filename.replace('.md', '').replace(/-/g, ' '),
+      content: fileContent,
+      tags: [],
+      privacy: gist.public ? 'public' : 'private',
+      location: '',
+    };
+  };
+
+  // Transform API response to display format
+  const transformPost = (gist: GistData): BlogPost => {
+    const parsed = parseGistContent(gist);
+    return {
+      id: gist.id,
+      title: parsed.title,
+      content: parsed.content,
+      description: gist.description.replace('[BLOG]', '').trim(),
+      createdAt: gist.created_at,
+      updatedAt: gist.updated_at,
+      author: { login: gist.owner.login, avatar_url: gist.owner.avatar_url },
+      tags: parsed.tags,
+      privacy: parsed.privacy as 'public' | 'private',
+      location: parsed.location,
+      images: [], // GistData doesn't explicitly store images separate from content, but we could parse them
+    };
+  };
+
+  // Load posts from server-side API
   const loadPosts = useCallback(async () => {
     try {
-      const blogPosts = await githubAPI.getBlogPosts();
-      setPosts(blogPosts);
+      // Get token from localStorage to ensure we have it even if state isn't updated yet
+      const token = localStorage.getItem('auth_token');
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/blogs', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ action: 'getPosts' }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Error loading posts:', error);
+        setPosts([]);
+        return;
+      }
+
+      const data = await response.json();
+      setPosts(data.gists || []);
     } catch (error) {
       console.error('Error loading posts:', error);
       setPosts([]);
@@ -56,13 +145,18 @@ export default function QuickBlog() {
 
   const loadInitialData = useCallback(async () => {
     try {
-      // Check if user is already authenticated
-      if (githubAPI.isAuthenticated()) {
-        // Get user info
-        const userInfo = await githubAPI.getCurrentUser();
-        setUser(userInfo);
+      // Check if user is logged in via login API
+      // Since we don't have persistent sessions yet, we'll skip the auto-login check
+      // or we could check localStorage if we implemented that.
+      // For now, let's look for a token in localStorage
+      const storedToken = localStorage.getItem('auth_token');
+      const storedUser = localStorage.getItem('auth_user');
+
+      if (storedToken && storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser({ ...parsedUser, token: storedToken });
       }
-      
+
       // Load blog posts (always load, regardless of authentication)
       await loadPosts();
     } catch (error) {
@@ -94,15 +188,29 @@ export default function QuickBlog() {
 
   const handleCreatePost = async (postData: PostData) => {
     try {
-      await githubAPI.createBlogPost({
-        title: newPostTitle || 'Untitled Post',
-        content: postData.text,
-        location: postData.location || currentLocation,
-        tags: ['blog', 'quick-post'],
-        privacy: newPostPrivacy,
-        images: postData.images || [],
+      const response = await fetch('/api/blogs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': user?.token ? `Bearer ${user.token}` : ''
+        },
+        body: JSON.stringify({
+          action: 'createPost',
+          title: newPostTitle || 'Untitled Post',
+          content: postData.text,
+          description: postData.text.substring(0, 100),
+          location: postData.location || currentLocation,
+          tags: ['blog', 'quick-post'],
+          privacy: newPostPrivacy,
+        }),
       });
-      
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Failed to create post');
+        return;
+      }
+
       // Reload posts and clear form
       await loadPosts();
       setNewPostContent('');
@@ -120,11 +228,38 @@ export default function QuickBlog() {
     setLoginError('');
 
     try {
-      const userData = await authenticateUser(loginCredentials);
-      setUser(userData);
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginCredentials),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setLoginError(error.error || 'Login failed');
+        return;
+      }
+
+      const userData = await response.json();
+      const userObj = {
+        name: userData.username,
+        avatar_url: `https://github.com/${userData.github_username}.png`,
+        token: userData.token,
+        github_username: userData.github_username
+      };
+      setUser(userObj);
+
+      // Persist to localStorage
+      localStorage.setItem('auth_token', userData.token);
+      localStorage.setItem('auth_user', JSON.stringify({
+        name: userObj.name,
+        avatar_url: userObj.avatar_url,
+        github_username: userObj.github_username
+      }));
+
       setShowLogin(false);
       setLoginCredentials({ username: '', password: '' });
-      
+
       // Reload posts after login
       await loadPosts();
     } catch (error) {
@@ -135,9 +270,10 @@ export default function QuickBlog() {
   };
 
   const handleLogout = () => {
-    logoutUser();
     setUser(null);
-    // Keep posts visible after logout - don't clear posts array
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    // Keep posts visible after logout
   };
 
   // Modal handlers
@@ -146,19 +282,57 @@ export default function QuickBlog() {
     setShowEditModal(true);
   };
 
-  const handleDeletePost = (post: BlogPost) => {
-    setSelectedPost(post);
-    setShowDeleteModal(true);
+  const handleDeletePost = async (post: BlogPost) => {
+    const response = await fetch('/api/blogs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': user?.token ? `Bearer ${user.token}` : ''
+      },
+      body: JSON.stringify({
+        action: 'deletePost',
+        gistId: post.id,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete post');
+    }
+
+    // Remove from local state
+    setPosts(prevPosts => prevPosts.filter(p => p.id !== post.id));
+
+    setShowDeleteModal(false);
+    setSelectedPost(null);
   };
 
   const handleSavePost = async (updatedPost: BlogPost) => {
-    // Update the post in the local state
-    setPosts(prevPosts => 
-      prevPosts.map(post => 
-        post.id === updatedPost.id ? updatedPost : post
-      )
-    );
-    
+    const response = await fetch('/api/blogs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': user?.token ? `Bearer ${user.token}` : ''
+      },
+      body: JSON.stringify({
+        action: 'updatePost',
+        gistId: updatedPost.id,
+        title: updatedPost.title,
+        content: updatedPost.content,
+        // Include other fields if needed for the backend to update Gist correctly
+        // The backend updatePost seems to rely on what's sent.
+        // We should send all editable fields if the backend supports them.
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update post');
+    }
+
+    // Reload posts
+    await loadPosts();
+
     setShowEditModal(false);
     setSelectedPost(null);
   };
@@ -173,21 +347,10 @@ export default function QuickBlog() {
   };
 
   const handleConfirmDelete = async (postId: string) => {
-    const deletedPost = selectedPost;
-    
-    // Remove the post from local state
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-    
-    // Show success message
-    showSuccess(`Post "${deletedPost?.title || 'Untitled'}" has been deleted from GitHub and removed from your blog.`);
-    
-    // Refresh the posts list to ensure consistency
-    setTimeout(() => {
-      loadPosts();
-    }, 1000);
-    
-    setShowDeleteModal(false);
-    setSelectedPost(null);
+    if (selectedPost) {
+      await handleDeletePost(selectedPost);
+      showSuccess(`Post has been deleted.`);
+    }
   };
 
   const handleCancelEdit = () => {
@@ -201,29 +364,28 @@ export default function QuickBlog() {
   };
 
   // Read more functionality
-  const CONTENT_PREVIEW_LENGTH = 300; // Characters
-  
+  const CONTENT_PREVIEW_LENGTH = 300;
+
   const shouldShowReadMore = (content: string): boolean => {
     return content.length > CONTENT_PREVIEW_LENGTH;
   };
-  
+
   const getPreviewContent = (content: string): string => {
     if (content.length <= CONTENT_PREVIEW_LENGTH) return content;
-    
-    // Find a good break point (end of sentence or word)
+
     const preview = content.substring(0, CONTENT_PREVIEW_LENGTH);
     const lastSentence = preview.lastIndexOf('.');
     const lastSpace = preview.lastIndexOf(' ');
-    
+
     if (lastSentence > CONTENT_PREVIEW_LENGTH * 0.7) {
       return content.substring(0, lastSentence + 1);
     } else if (lastSpace > CONTENT_PREVIEW_LENGTH * 0.7) {
       return content.substring(0, lastSpace);
     }
-    
+
     return preview + '...';
   };
-  
+
   const togglePostExpanded = (postId: string) => {
     setExpandedPosts(prev => {
       const newSet = new Set(prev);
@@ -236,43 +398,128 @@ export default function QuickBlog() {
     });
   };
 
+  // Transform posts for display
+  const displayPosts = posts.map(transformPost);
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--web-wash)' }}>
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Quick Blog</h1>
-              <p className="text-sm text-gray-600">Share your thoughts instantly</p>
+      <div className="header">
+        <div className="header-content">
+          <div className="header-title">
+            <h1>Quick Blog</h1>
+            <p>Share your thoughts instantly</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Theme Switcher - Light/System/Dark */}
+            <div
+              className="theme-switcher"
+              style={{
+                display: 'flex',
+                background: 'var(--secondary-background)',
+                border: '1px solid var(--primary-border)',
+                borderRadius: '8px',
+                padding: '4px',
+                gap: '2px'
+              }}
+            >
+              <button
+                onClick={() => setThemeMode('light')}
+                title="Light Mode"
+                style={{
+                  background: theme === 'light' ? 'var(--primary-background)' : 'transparent',
+                  color: theme === 'light' ? 'var(--blue-link)' : 'var(--secondary-text)',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxShadow: theme === 'light' ? '0 2px 10px rgba(0,0,0,0.1)' : 'none',
+                  border: theme === 'light' ? '1px solid var(--primary-border)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              </button>
+              <button
+                onClick={() => setThemeMode('system')}
+                title="System Sync"
+                style={{
+                  background: theme === 'system' ? 'var(--primary-background)' : 'transparent',
+                  color: theme === 'system' ? 'var(--blue-link)' : 'var(--secondary-text)',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxShadow: theme === 'system' ? '0 2px 10px rgba(0,0,0,0.1)' : 'none',
+                  border: theme === 'system' ? '1px solid var(--primary-border)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+              </button>
+              <button
+                onClick={() => setThemeMode('dark')}
+                title="Dark Mode"
+                style={{
+                  background: theme === 'dark' ? 'var(--primary-background)' : 'transparent',
+                  color: theme === 'dark' ? 'var(--blue-link)' : 'var(--secondary-text)',
+                  padding: '6px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  boxShadow: theme === 'dark' ? '0 2px 10px rgba(0,0,0,0.1)' : 'none',
+                  border: theme === 'dark' ? '1px solid var(--primary-border)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              </button>
             </div>
-            <div className="flex items-center gap-4">
-              {user ? (
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={user.avatar_url}
-                    alt={user.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full"
-                  />
-                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
-                    Logout
-                  </button>
-                </div>
-               ) : (
-                 <button
-                   onClick={() => setShowLogin(true)}
-                   className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
-                 >
-                   Login
-                 </button>
-               )}
-            </div>
+            
+            {user ? (
+              <div className="flex items-center gap-3">
+                <Image
+                  src={user.avatar_url}
+                  alt={user.name}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+                <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="login-btn"
+              >
+                Login
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -352,27 +599,25 @@ export default function QuickBlog() {
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Create Post Section - Facebook Style */}
+      <div className="container">
+        {/* Create Post Section */}
         {user && (
-          <div className="bg-white rounded-xl shadow-sm border mb-6">
+          <div className="create-post">
             {!showEditor ? (
-              <div className="p-4">
-                <div className="flex items-start gap-3">
-                  <Image
-                    src={user.avatar_url}
-                    alt={user.name}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  <button
-                    onClick={() => setShowEditor(true)}
-                    className="flex-1 text-left p-3 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
-                  >
-                    What&apos;s on your mind? Use BBCode, paste images, share links...
-                  </button>
-                </div>
+              <div className="create-post-header">
+                <Image
+                  src={user.avatar_url}
+                  alt={user.name}
+                  width={40}
+                  height={40}
+                  className="avatar"
+                />
+                <button
+                  onClick={() => setShowEditor(true)}
+                  className="create-post-btn"
+                >
+                  What's on your mind? Use BBCode, paste images, share links...
+                </button>
               </div>
             ) : (
               <div className="p-4 space-y-4">
@@ -382,7 +627,7 @@ export default function QuickBlog() {
                     alt={user.name}
                     width={40}
                     height={40}
-                    className="rounded-full"
+                    className="avatar"
                   />
                   <div className="flex-1 space-y-3">
                     <input
@@ -392,7 +637,7 @@ export default function QuickBlog() {
                       placeholder="Post title..."
                       className="w-full p-2 border rounded-lg font-medium text-gray-900 bg-white"
                     />
-                    
+
                     {/* Privacy selector */}
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600">Privacy:</span>
@@ -407,7 +652,7 @@ export default function QuickBlog() {
                     </div>
                   </div>
                 </div>
-                
+
                 <GitHubGistEditor
                   initialValue={newPostContent}
                   onSave={handleCreatePost}
@@ -416,7 +661,6 @@ export default function QuickBlog() {
                     setNewPostContent('');
                     setNewPostTitle('');
                     setNewPostPrivacy('public');
-                    // The GitHubGistEditor component handles resetting uploaded images internally
                   }}
                   placeholder="What's happening? Use BBCode, paste images, share links..."
                   autoFocus={true}
@@ -426,7 +670,7 @@ export default function QuickBlog() {
                     enableDragDrop: true,
                     enableClipboardPaste: true,
                     enableBBCode: true,
-                    maxFileSize: 100 * 1024 * 1024, // 100MB
+                    maxFileSize: 100 * 1024 * 1024,
                     allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
                   }}
                 />
@@ -439,8 +683,8 @@ export default function QuickBlog() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm border p-6">
-                <div className="animate-pulse">
+              <div key={i} className="b_post">
+                <div className="animate-pulse p-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
                     <div>
@@ -457,16 +701,19 @@ export default function QuickBlog() {
               </div>
             ))}
           </div>
-        ) : posts.length > 0 ? (
+        ) : displayPosts.length > 0 ? (
           <div id="b_feed">
-            {posts.map((post) => (
+            {displayPosts.map((post) => (
               <div key={post.id} className="b_post">
                 {/* Post Tools (Edit/Delete) */}
                 <PostToolsDropdown
                   post={post}
                   currentUser={user}
                   onEdit={handleEditPost}
-                  onDelete={handleDeletePost}
+                  onDelete={(p) => {
+                    setSelectedPost(p);
+                    setShowDeleteModal(true);
+                  }}
                 />
 
                 {/* Post Header */}
@@ -486,9 +733,9 @@ export default function QuickBlog() {
                     </div>
                     <div className="b_options">
                       <Link href={`/quick-blog/${post.id}`} className="b_date" target="_blank" rel="noopener noreferrer">
-                        {new Date(post.createdAt).toLocaleDateString('en-US', { 
-                          month: 'long', 
-                          day: 'numeric', 
+                        {new Date(post.createdAt).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric',
                           year: 'numeric',
                           hour: '2-digit',
                           minute: '2-digit'
@@ -516,17 +763,9 @@ export default function QuickBlog() {
 
                 {/* Post Title */}
                 {post.title && post.title !== 'Untitled Post' && (
-                  <div className="b_text">
-                    <h2 style={{ 
-                      fontSize: '20px', 
-                      fontWeight: 'bold', 
-                      margin: '0 0 12px 0', 
-                      color: 'var(--primary-text)',
-                      lineHeight: '1.4'
-                    }}>
-                      {post.title}
-                    </h2>
-                  </div>
+                  <h2 className="post-title">
+                    {post.title}
+                  </h2>
                 )}
 
                 {/* Post Content with Read More */}
@@ -534,22 +773,15 @@ export default function QuickBlog() {
                   {shouldShowReadMore(post.content) ? (
                     <>
                       <div className={`b_text_preview ${expandedPosts.has(post.id) ? 'expanded' : 'collapsed'}`}>
-                        <ReactMarkdown 
+                        <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
                             img: ({ src, alt, title }) => (
                               <div className="b_img">
-                                <img 
-                                  src={src} 
-                                  alt={alt} 
+                                <img
+                                  src={src}
+                                  alt={alt}
                                   title={title}
-                                  style={{
-                                    maxWidth: '100%',
-                                    height: 'auto',
-                                    borderRadius: '8px',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                    margin: '1rem 0'
-                                  }}
                                 />
                               </div>
                             )
@@ -563,40 +795,19 @@ export default function QuickBlog() {
                         className={`read_more_btn ${expandedPosts.has(post.id) ? 'expanded' : ''}`}
                         onClick={() => togglePostExpanded(post.id)}
                       >
-                        {expandedPosts.has(post.id) ? (
-                          <>
-                            Show less
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
-                          </>
-                        ) : (
-                          <>
-                            Read more
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </>
-                        )}
+                        {expandedPosts.has(post.id) ? 'Show less' : 'Read more'}
                       </button>
                     </>
                   ) : (
-                    <ReactMarkdown 
+                    <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         img: ({ src, alt, title }) => (
                           <div className="b_img">
-                            <img 
-                              src={src} 
-                              alt={alt} 
+                            <img
+                              src={src}
+                              alt={alt}
                               title={title}
-                              style={{
-                                maxWidth: '100%',
-                                height: 'auto',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                                margin: '1rem 0'
-                              }}
                             />
                           </div>
                         )
@@ -619,7 +830,7 @@ export default function QuickBlog() {
                   </div>
                 )}
 
-                {/* Post Actions - KEEPING YOUR LIKE, COMMENT, VIEW GIST BUTTONS */}
+                {/* Post Actions */}
                 <div className="b_actions">
                   <div className="b_actions_left">
                     <button className="b_action_btn like">
@@ -641,7 +852,7 @@ export default function QuickBlog() {
                       className="b_action_btn gist"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                       </svg>
                       View Gist
                     </a>
@@ -649,23 +860,23 @@ export default function QuickBlog() {
                 </div>
               </div>
             ))}
-            
+
             {/* Feed End Indicator */}
             <div id="eof_feed">
               End of posts
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
               </svg>
             </div>
-             <h3 className="text-xl font-semibold text-gray-900 mb-2">No posts yet</h3>
-             <p className="text-gray-600">
-               {user ? "Create your first post above!" : "No posts available at the moment. Login to start posting!"}
-             </p>
+            <h3>No posts yet</h3>
+            <p>
+              {user ? "Create your first post above!" : "No posts available at the moment. Login to start posting!"}
+            </p>
           </div>
         )}
       </div>

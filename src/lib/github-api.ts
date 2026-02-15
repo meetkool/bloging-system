@@ -3,6 +3,11 @@
 // Import config for default GitHub username
 const defaultGitHubUsername = 'meetkool'; // Fallback username
 
+// Get GitHub credentials from environment variables
+const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
+const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN;
+
 export interface GistFile {
   filename: string;
   content: string;
@@ -59,42 +64,48 @@ export interface User {
   name: string;
 }
 
+// Check if admin token is valid
+export function isValidAdminToken(token: string): boolean {
+  if (!ADMIN_API_TOKEN) {
+    console.warn('ADMIN_API_TOKEN not configured in environment');
+    return false;
+  }
+  return token === ADMIN_API_TOKEN;
+}
+
+// Get GitHub credentials (for server-side use)
+export function getGitHubCredentials() {
+  return {
+    clientId: GITHUB_CLIENT_ID,
+    clientSecret: GITHUB_CLIENT_SECRET,
+  };
+}
+
 class GitHubGistAPI {
   private baseURL = 'https://api.github.com';
   private accessToken: string | null = null;
   private githubUsername: string | null = null;
 
   constructor() {
-    // Get stored credentials from localStorage
-    if (typeof window !== 'undefined') {
-      this.accessToken = localStorage.getItem('github_access_token');
-      this.githubUsername = localStorage.getItem('github_username');
-    }
+    // No localStorage - tokens should be handled server-side or via OAuth flow
+    // For server-side operations, we rely on environment variables
   }
 
+  // For OAuth flow - set token after GitHub authentication
   setCredentials(token: string, username: string) {
     this.accessToken = token;
     this.githubUsername = username;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('github_access_token', token);
-      localStorage.setItem('github_username', username);
-    }
+    // Note: We don't store in localStorage anymore
+    // Tokens should be managed via secure HttpOnly cookies or server-side sessions
   }
 
   setAccessToken(token: string) {
     this.accessToken = token;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('github_access_token', token);
-    }
   }
 
   removeCredentials() {
     this.accessToken = null;
     this.githubUsername = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('github_access_token');
-      localStorage.removeItem('github_username');
-    }
   }
 
   isAuthenticated(): boolean {
@@ -118,7 +129,7 @@ class GitHubGistAPI {
     if (!response.ok) {
       // Handle different error types
       let errorMessage = `GitHub API error: ${response.status} ${response.statusText}`;
-      
+
       if (response.status === 404) {
         errorMessage = 'Post not found - it may have already been deleted';
       } else if (response.status === 403) {
@@ -126,7 +137,7 @@ class GitHubGistAPI {
       } else if (response.status === 401) {
         errorMessage = 'Unauthorized - please log in again';
       }
-      
+
       throw new Error(errorMessage);
     }
 
@@ -136,7 +147,7 @@ class GitHubGistAPI {
       const text = await response.text();
       return text ? JSON.parse(text) : {};
     }
-    
+
     return {};
   }
 
@@ -145,7 +156,7 @@ class GitHubGistAPI {
     if (!this.githubUsername) {
       throw new Error('Not authenticated');
     }
-    
+
     return {
       username: this.githubUsername,
       github_username: this.githubUsername,
@@ -164,7 +175,7 @@ class GitHubGistAPI {
   async getBlogPosts(): Promise<BlogPost[]> {
     try {
       let gists: GistData[] = [];
-      
+
       if (this.isAuthenticated()) {
         // User is authenticated - get their own gists
         console.log('Fetching authenticated user gists');
@@ -174,14 +185,14 @@ class GitHubGistAPI {
         console.log(`Fetching public gists from user: ${defaultGitHubUsername}`);
         gists = await this.getUserGists(defaultGitHubUsername);
       }
-      
+
       console.log(`Found ${gists.length} total gists`);
-      
+
       // Filter gists that are blog posts (you can customize this logic)
-      const blogGists = gists.filter(gist => 
-        gist.description && 
+      const blogGists = gists.filter(gist =>
+        gist.description &&
         (gist.description.startsWith('[BLOG]') || gist.description.includes('#blog')) &&
-        gist.files && 
+        gist.files &&
         Object.keys(gist.files).length > 0
       );
 
@@ -210,12 +221,52 @@ class GitHubGistAPI {
 
       return filteredPosts;
     } catch (error) {
-      console.error('Error fetching blog posts:', error);
+      console.error('Error fetching blog posts directly:', error);
+
+      // Fallback: If running in browser and direct access failed (likely 403 rate limit), try server-side API
+      if (typeof window !== 'undefined') {
+        try {
+          console.log('Attempting fallback to server-side API /api/blogs...');
+          const response = await fetch('/api/blogs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getPosts' }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.gists && Array.isArray(data.gists)) {
+              console.log(`Fallback successful: received ${data.gists.length} gists from server`);
+
+              // Process the gists returned from server
+              const results = await Promise.allSettled(
+                data.gists.map((gist: GistData) => this.transformGistToBlogPost(gist))
+              );
+
+              const successfulPosts: BlogPost[] = [];
+              results.forEach((result) => {
+                if (result.status === 'fulfilled') {
+                  successfulPosts.push(result.value);
+                }
+              });
+
+              // Apply privacy filtering (even though server might have already filtered, we re-check)
+              const filteredPosts = this.filterPostsByPrivacy(successfulPosts);
+              return filteredPosts;
+            }
+          } else {
+            console.error('Fallback API request failed:', response.status);
+          }
+        } catch (fallbackError) {
+          console.error('Fallback to server-side API failed:', fallbackError);
+        }
+      }
+
       console.error('Authentication status:', this.isAuthenticated());
       console.error('Access token exists:', !!this.accessToken);
       console.error('GitHub username:', this.githubUsername);
-      
-      // Even if there's an error, try to fetch public posts as fallback
+
+      // Even if there's an error, try to fetch public posts as fallback (if we haven't already tried)
       if (this.isAuthenticated()) {
         console.log('Falling back to public posts due to error');
         try {
@@ -224,7 +275,7 @@ class GitHubGistAPI {
           console.error('Fallback to public posts also failed:', fallbackError);
         }
       }
-      
+
       return [];
     }
   }
@@ -234,11 +285,11 @@ class GitHubGistAPI {
     try {
       console.log(`Fetching public blog posts from user: ${defaultGitHubUsername}`);
       const gists = await this.getUserGists(defaultGitHubUsername);
-      
-      const blogGists = gists.filter(gist => 
-        gist.description && 
+
+      const blogGists = gists.filter(gist =>
+        gist.description &&
         (gist.description.startsWith('[BLOG]') || gist.description.includes('#blog')) &&
-        gist.files && 
+        gist.files &&
         Object.keys(gist.files).length > 0
       );
 
@@ -279,7 +330,7 @@ class GitHubGistAPI {
     privacy?: 'public' | 'private';
   }): Promise<BlogPost> {
     const filename = `${data.title.toLowerCase().replace(/\s+/g, '-')}.md`;
-    
+
     // Create metadata object
     const metadata = {
       location: data.location,
@@ -291,7 +342,7 @@ class GitHubGistAPI {
 
     // Create enhanced content with images if provided
     let enhancedContent = data.content;
-    
+
     // If images are provided and not already in content, add them
     if (data.images && data.images.length > 0) {
       const existingImages = new Set();
@@ -301,7 +352,7 @@ class GitHubGistAPI {
       while ((match = imageRegex.exec(data.content)) !== null) {
         existingImages.add(match[1]);
       }
-      
+
       // Add any new images that aren't already in the content
       const newImages = data.images.filter(img => !existingImages.has(img));
       if (newImages.length > 0) {
@@ -353,10 +404,10 @@ ${enhancedContent}`;
     const gist = await this.getGist(gistId);
     const filename = Object.keys(gist.files)[0];
     const currentFile = gist.files[filename];
-    
+
     // Parse current content to extract metadata
     const { content: currentContent, metadata } = this.parseMarkdownWithFrontmatter(currentFile.content);
-    
+
     // Update metadata
     const updatedMetadata = {
       ...metadata,
@@ -370,7 +421,7 @@ ${enhancedContent}`;
 
     // Create enhanced content with images if provided
     let enhancedContent = data.content || currentContent;
-    
+
     // If images are provided in the update, handle them
     if (data.images && data.images.length > 0) {
       const existingImages = new Set();
@@ -380,7 +431,7 @@ ${enhancedContent}`;
       while ((match = imageRegex.exec(enhancedContent)) !== null) {
         existingImages.add(match[1]);
       }
-      
+
       // Add any new images that aren't already in the content
       const newImages = data.images.filter(img => !existingImages.has(img));
       if (newImages.length > 0) {
@@ -403,11 +454,11 @@ ${enhancedContent}`;
 
     // Get the current description without the [BLOG] prefix and clean it up
     const currentDescription = gist.description.replace(/^\[BLOG\]\s*/, '').trim();
-    
+
     // Extract just the title part and any additional description
     const titleMatch = currentDescription.match(/^(.+?)(?:\s*-\s*(.*))?$/);
     const originalExtraDescription = titleMatch ? titleMatch[2] : '';
-    
+
     // Build new description
     const newTitle = updatedMetadata.title || metadata.title || 'Untitled Post';
     const descriptionPart = data.description || originalExtraDescription;
@@ -445,10 +496,10 @@ ${enhancedContent}`;
       console.warn('Gist has no files:', gist.id);
       throw new Error(`Gist ${gist.id} has no files and should be skipped`);
     }
-    
+
     const filename = Object.keys(gist.files)[0];
     const file = gist.files[filename];
-    
+
     // Ensure file exists
     if (!file) {
       console.warn('Gist file not found:', gist.id, filename);
@@ -468,9 +519,9 @@ ${enhancedContent}`;
       contentPreview: file.content ? file.content.substring(0, 100) + '...' : 'NO CONTENT'
     });
 
-    // If content is truncated, fetch full content from raw_url
-    if (file.truncated && file.raw_url) {
-      console.log('Fetching full content for truncated file:', gist.id, filename);
+    // If content is truncated OR missing/empty, fetch full content from raw_url
+    if ((file.truncated || !file.content) && file.raw_url) {
+      console.log('Fetching full content from raw_url (truncated or missing):', gist.id, filename);
       try {
         const response = await fetch(file.raw_url);
         if (response.ok) {
@@ -493,7 +544,7 @@ ${enhancedContent}`;
         if (fullFile && fullFile.content) {
           fileContent = fullFile.content;
           console.log('Successfully fetched content from full gist:', gist.id, 'Length:', fileContent.length);
-          
+
           // If the full gist content is also truncated, fetch from raw_url
           if (fullFile.truncated && fullFile.raw_url) {
             console.log('Full gist content also truncated, fetching from raw_url:', gist.id);
@@ -533,9 +584,9 @@ ${enhancedContent}`;
       // Instead of creating a placeholder post, throw an error to skip this gist entirely
       throw new Error(`Gist ${gist.id} has no accessible content and should be skipped`);
     }
-    
+
     const { content, metadata } = this.parseMarkdownWithFrontmatter(fileContent);
-    
+
     return {
       id: gist.id,
       title: (metadata.title as string) || filename.replace('.md', '').replace(/-/g, ' '),
@@ -561,17 +612,17 @@ ${enhancedContent}`;
       console.warn('parseMarkdownWithFrontmatter received invalid content:', typeof content);
       return { content: content || '', metadata: {} };
     }
-    
+
     const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)/;
     const match = content.match(frontmatterRegex);
-    
+
     if (!match) {
       return { content, metadata: {} };
     }
 
     const [, frontmatterText, markdownContent] = match;
     const metadata: Record<string, unknown> = {};
-    
+
     // Parse simple YAML-like frontmatter
     frontmatterText.split('\n').forEach(line => {
       const [key, ...valueParts] = line.split(':');
@@ -608,7 +659,7 @@ ${enhancedContent}`;
 // Export singleton instance
 export const githubAPI = new GitHubGistAPI();
 
-// Simple authentication helper functions
+// Simple authentication helper functions (for OAuth flow)
 export const authenticateUser = async (credentials: AuthCredentials): Promise<User> => {
   // Call the login API
   const response = await fetch('/api/auth/login', {
@@ -625,10 +676,10 @@ export const authenticateUser = async (credentials: AuthCredentials): Promise<Us
   }
 
   const data = await response.json();
-  
-  // Set credentials in the API instance
+
+  // Set credentials in the API instance (not in localStorage)
   githubAPI.setCredentials(data.github_token, data.github_username);
-  
+
   return {
     username: data.username,
     github_username: data.github_username,

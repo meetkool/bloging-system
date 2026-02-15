@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return user data
+    // Return user data and token
     return NextResponse.json({
       success: true,
       username: config.auth.username,
       github_username: config.github.username,
-      github_token: config.github.personalAccessToken,
+      token: process.env.ADMIN_API_TOKEN,
     });
   } catch (error) {
     console.error('Login error:', error);

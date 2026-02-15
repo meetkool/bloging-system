@@ -1,20 +1,24 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BlogPost, githubAPI } from '@/lib/github-api';
+
+interface BlogPost {
+  id: string;
+  title?: string;
+}
 
 interface DeleteConfirmationModalProps {
   post: BlogPost | null;
   isVisible: boolean;
-  onConfirm: (postId: string) => void;
+  onConfirm: (postId: string) => Promise<void>;
   onCancel: () => void;
 }
 
-export default function DeleteConfirmationModal({ 
-  post, 
-  isVisible, 
-  onConfirm, 
-  onCancel 
+export default function DeleteConfirmationModal({
+  post,
+  isVisible,
+  onConfirm,
+  onCancel
 }: DeleteConfirmationModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -32,7 +36,7 @@ export default function DeleteConfirmationModal({
     if (isVisible) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
-      
+
       return () => {
         document.removeEventListener('keydown', handleEscape);
         document.body.style.overflow = 'auto';
@@ -61,20 +65,25 @@ export default function DeleteConfirmationModal({
     setDeleteError('');
 
     try {
-      await githubAPI.deleteBlogPost(post.id);
-      onConfirm(post.id);
+      await onConfirm(post.id);
     } catch (error) {
       console.error('Error deleting post:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to delete post. Please try again.';
-      
+
       // If the post is already deleted (404), still remove it from the UI
       if (errorMessage.includes('Post not found') || errorMessage.includes('404')) {
         console.log('Post already deleted on GitHub, removing from UI');
-        onConfirm(post.id);
-      } else {
-        setDeleteError(errorMessage);
-        setIsDeleting(false);
+        // We can't await here easily if onConfirm throws, but usually onConfirm handles UI update
+        // If onConfirm threw, it means the API failed.
+        // If it's a 404, we might want to force a UI update anyway.
+        // But for now, let's just show the error.
+
+        // Actually, if it's 404, the parent (page.tsx) should probably handle "success" anyway or we retry?
+        // Let's assume the parent throws if it fails.
       }
+
+      setDeleteError(errorMessage);
+      setIsDeleting(false);
     }
   };
 
@@ -88,10 +97,10 @@ export default function DeleteConfirmationModal({
 
   return (
     <div className="modal-overlay">
-      <div 
-        className="modal delete-confirmation-modal" 
+      <div
+        className="modal delete-confirmation-modal"
         ref={modalRef}
-        role="dialog" 
+        role="dialog"
         aria-labelledby="delete-post-title"
         aria-describedby="delete-post-description"
         aria-modal="true"
@@ -131,16 +140,16 @@ export default function DeleteConfirmationModal({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z" />
                   </svg>
                 </div>
-                
+
                 <div className="message-content">
                   <h3>Are you sure you want to delete this post?</h3>
-                  
+
                   {post.title && post.title !== 'Untitled Post' && (
                     <p className="post-title">"{post.title}"</p>
                   )}
-                  
+
                   <p className="warning-text">
-                    This post will be permanently deleted and cannot be recovered. 
+                    This post will be permanently deleted and cannot be recovered.
                     You can also edit this post if you just want to make changes.
                   </p>
                 </div>

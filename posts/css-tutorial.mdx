@@ -1,0 +1,1802 @@
+---
+title: "Complete CSS Tutorial"
+date: "2026-02-15"
+excerpt: "A comprehensive CSS tutorial covering all essential concepts from basics to advanced topics including selectors, box model, flexbox, grid, animations, and more."
+tags: ["css", "tutorial", "web development", "frontend"]
+---
+# Complete CSS Tutorial
+
+Welcome to this comprehensive CSS tutorial! This guide covers all essential CSS concepts from basics to advanced topics.
+
+## Table of Contents
+
+1. [Introduction to CSS](#introduction-to-css)
+2. [CSS Selectors](#css-selectors)
+3. [CSS Box Model](#css-box-model)
+4. [CSS Colors](#css-colors)
+5. [CSS Typography](#css-typography)
+6. [CSS Layout - Flexbox](#css-layout-flexbox)
+7. [CSS Layout - Grid](#css-layout-grid)
+8. [CSS Positioning](#css-positioning)
+9. [CSS Responsive Design](#css-responsive-design)
+10. [CSS Animations](#css-animations)
+11. [CSS Transitions](#css-transitions)
+12. [CSS Transforms](#css-transforms)
+13. [CSS Variables (Custom Properties)](#css-variables-custom-properties)
+14. [CSS Media Queries](#css-media-queries)
+15. [CSS Pseudo-classes & Pseudo-elements](#css-pseudo-classes--pseudo-elements)
+16. [CSS Specificity](#css-specificity)
+17. [CSS Display Property](#css-display-property)
+18. [CSS Units](#css-units)
+19. [CSS Reset/Normalize](#css-resetnormalize)
+20. [CSS Best Practices](#css-best-practices)
+
+---
+
+## Introduction to CSS
+
+CSS (Cascading Style Sheets) is used to style and layout web pages. It can change fonts, colors, spacing, animations, and more.
+
+### How to Add CSS to HTML
+
+There are three ways to add CSS to HTML:
+
+1. **Inline CSS** - Using the `style` attribute
+2. **Internal CSS** - Using the `<style>` tag in `<head>`
+3. **External CSS** - Using an external `.css` file (recommended)
+
+```html
+<!-- Inline CSS -->
+<p style="color: blue; font-size: 16px;">Hello World</p>
+
+<!-- Internal CSS -->
+<head>
+  <style>
+    p { color: blue; font-size: 16px; }
+  </style>
+</head>
+
+<!-- External CSS -->
+<head>
+  <link rel="stylesheet" href="styles.css">
+</head>
+```
+
+---
+
+## CSS Selectors
+
+Selectors target HTML elements to apply styles.
+
+### Basic Selectors
+
+```css
+/* Element Selector */
+p { color: blue; }
+
+/* Class Selector */
+.highlight { background-color: yellow; }
+
+/* ID Selector */
+#header { background-color: gray; }
+
+/* Universal Selector */
+* { margin: 0; padding: 0; }
+
+/* Attribute Selector */
+[type="text"] { border: 1px solid black; }
+```
+
+### Combinator Selectors
+
+```css
+/* Descendant Selector (space) */
+div p { color: red; }
+
+/* Child Selector (>) */
+div > p { color: red; }
+
+/* Adjacent Sibling Selector (+) */
+h1 + p { color: red; }
+
+/* General Sibling Selector (~) */
+h1 ~ p { color: red; }
+```
+
+### Grouping Selectors
+
+```css
+h1, h2, h3 {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+```
+
+---
+
+## CSS Box Model
+
+Every element in CSS is a rectangular box. The box model consists of:
+
+- **Content** - The actual content (text, images)
+- **Padding** - Space inside the border
+- **Border** - The border around padding
+- **Margin** - Space outside the border
+
+```css
+.box {
+  /* Content area */
+  width: 200px;
+  height: 100px;
+  
+  /* Space inside border */
+  padding: 20px;
+  padding-top: 10px;
+  padding-right: 15px;
+  padding-bottom: 10px;
+  padding-left: 15px;
+  
+  /* Shorthand: top right bottom left */
+  padding: 10px 15px 10px 15px;
+  /* Or: top/bottom left/right */
+  padding: 10px 15px;
+  
+  /* Border */
+  border: 2px solid #333;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #333;
+  
+  /* Space outside border */
+  margin: 20px;
+  margin-top: 10px;
+  margin-right: 15px;
+  margin-bottom: 10px;
+  margin-left: 15px;
+  
+  /* Box sizing */
+  box-sizing: border-box; /* Includes padding & border in width */
+}
+```
+
+### Box Sizing
+
+```css
+/* Default - width/height only applies to content */
+box-sizing: content-box;
+
+/* Width/height includes padding and border */
+box-sizing: border-box;
+
+/* Global reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+```
+
+---
+
+## CSS Colors
+
+### Color Values
+
+```css
+.color-examples {
+  /* Named colors */
+  color: red;
+  
+  /* Hexadecimal */
+  color: #ff0000;
+  color: #f00; /* Shorthand */
+  
+  /* RGB */
+  color: rgb(255, 0, 0);
+  
+  /* RGBA (with alpha/transparency) */
+  color: rgba(255, 0, 0, 0.5);
+  
+  /* HSL (Hue, Saturation, Lightness) */
+  color: hsl(0, 100%, 50%);
+  
+  /* HSLA */
+  color: hsla(0, 100%, 50%, 0.5);
+  
+  /* Current color */
+  color: currentColor;
+  
+  /* Transparent */
+  color: transparent;
+}
+```
+
+### Color Properties
+
+```css
+.color-properties {
+  color: #333; /* Text color */
+  background-color: #fff; /* Background color */
+  border-color: #ccc; /* Border color */
+  outline-color: #000; /* Outline color */
+}
+```
+
+---
+
+## CSS Typography
+
+### Font Properties
+
+```css
+.text-styles {
+  /* Font family */
+  font-family: 'Arial', sans-serif;
+  font-family: 'Times New Roman', serif;
+  font-family: 'Courier New', monospace;
+  font-family: 'Georgia', serif;
+  font-family: system-ui, -apple-system, sans-serif;
+  
+  /* Font size */
+  font-size: 16px;
+  font-size: 1rem;
+  font-size: 1em;
+  font-size: 100%;
+  
+  /* Font weight */
+  font-weight: normal;
+  font-weight: bold;
+  font-weight: 400;
+  font-weight: 700;
+  font-weight: 100-900;
+  
+  /* Font style */
+  font-style: normal;
+  font-style: italic;
+  font-style: oblique;
+  
+  /* Font variant */
+  font-variant: normal;
+  font-variant: small-caps;
+  
+  /* Line height */
+  line-height: 1.5;
+  line-height: 24px;
+  
+  /* Letter spacing */
+  letter-spacing: normal;
+  letter-spacing: 2px;
+  letter-spacing: -1px;
+  
+  /* Text align */
+  text-align: left;
+  text-align: center;
+  text-align: right;
+  text-align: justify;
+  
+  /* Text decoration */
+  text-decoration: none;
+  text-decoration: underline;
+  text-decoration: overline;
+  text-decoration: line-through;
+  text-decoration-color: red;
+  text-decoration-style: solid;
+  text-decoration-style: dashed;
+  text-decoration-style: dotted;
+  text-decoration-style: wavy;
+  
+  /* Text transform */
+  text-transform: none;
+  text-transform: uppercase;
+  text-transform: lowercase;
+  text-transform: capitalize;
+  
+  /* Text indent */
+  text-indent: 20px;
+  
+  /* Text shadow */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 1px 1px 2px black, 0 0 5px blue;
+  
+  /* White space */
+  white-space: normal;
+  white-space: nowrap;
+  white-space: pre;
+  white-space: pre-wrap;
+  white-space: pre-line;
+  
+  /* Word spacing */
+  word-spacing: 5px;
+  
+  /* Word break */
+  word-break: normal;
+  word-break: break-all;
+  word-break: keep-all;
+}
+```
+
+### Google Fonts
+
+```html
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+```
+
+```css
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+```
+
+### Text Overflow
+
+```css
+.overflow-examples {
+  /* Single line */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Shows "..." */
+  
+  /* Multi-line (webkit) */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+```
+
+---
+
+## CSS Layout - Flexbox
+
+Flexbox provides an efficient way to lay out, align, and distribute space among items.
+
+### Container Properties
+
+```css
+.flex-container {
+  /* Display flex */
+  display: flex;
+  display: inline-flex;
+  
+  /* Flex direction */
+  flex-direction: row; /* default */
+  flex-direction: row-reverse;
+  flex-direction: column;
+  flex-direction: column-reverse;
+  
+  /* Flex wrap */
+  flex-wrap: nowrap; /* default */
+  flex-wrap: wrap;
+  flex-wrap: wrap-reverse;
+  
+  /* Shorthand: flex-direction flex-wrap */
+  flex-flow: row wrap;
+  
+  /* Justify content (main axis) */
+  justify-content: flex-start;
+  justify-content: flex-end;
+  justify-content: center;
+  justify-content: space-between;
+  justify-content: space-around;
+  justify-content: space-evenly;
+  
+  /* Align items (cross axis) */
+  align-items: stretch; /* default */
+  align-items: flex-start;
+  align-items: flex-end;
+  align-items: center;
+  align-items: baseline;
+  
+  /* Align content (multi-line) */
+  align-content: stretch;
+  align-content: flex-start;
+  align-content: flex-end;
+  align-content: center;
+  align-content: space-between;
+  align-content: space-around;
+  
+  /* Gap */
+  gap: 20px;
+  gap: 10px 20px; /* row column */
+}
+```
+
+### Item Properties
+
+```css
+.flex-item {
+  /* Order */
+  order: 0; /* default, can be negative */
+  
+  /* Flex grow */
+  flex-grow: 0; /* default */
+  flex-grow: 1;
+  
+  /* Flex shrink */
+  flex-shrink: 1; /* default */
+  flex-shrink: 0;
+  
+  /* Flex basis */
+  flex-basis: auto; /* default */
+  flex-basis: 200px;
+  flex-basis: 50%;
+  
+  /* Shorthand: flex-grow flex-shrink flex-basis */
+  flex: 0 1 auto;
+  flex: 1; /* flex: 1 1 0% */
+  flex: auto; /* flex: 1 1 auto */
+  flex: none; /* flex: 0 0 auto */
+  
+  /* Align self */
+  align-self: auto; /* default */
+  align-self: flex-start;
+  align-self: flex-end;
+  align-self: center;
+  align-self: baseline;
+  align-self: stretch;
+}
+```
+
+### Flexbox Examples
+
+```css
+/* Center element */
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Space between */
+.space-between {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Equal width columns */
+.equal-columns {
+  display: flex;
+}
+.equal-columns > * {
+  flex: 1;
+}
+
+/* Responsive wrap */
+.responsive-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+.responsive-wrap > * {
+  flex: 1 1 300px;
+}
+```
+
+---
+
+## CSS Layout - Grid
+
+CSS Grid is a two-dimensional layout system for rows and columns.
+
+### Container Properties
+
+```css
+.grid-container {
+  /* Display grid */
+  display: grid;
+  display: inline-grid;
+  
+  /* Columns */
+  grid-template-columns: 100px 100px 100px;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  
+  /* Rows */
+  grid-template-rows: 100px 100px;
+  grid-template-rows: auto;
+  grid-template-rows: repeat(3, 1fr);
+  
+  /* Gap */
+  gap: 20px;
+  grid-gap: 20px; /* deprecated */
+  row-gap: 10px;
+  column-gap: 20px;
+  
+  /* Grid template areas */
+  grid-template-areas: 
+    "header header header"
+    "sidebar main main"
+    "footer footer footer";
+    
+  /* Justify items (horizontal) */
+  justify-items: stretch;
+  justify-items: start;
+  justify-items: end;
+  justify-items: center;
+  
+  /* Align items (vertical) */
+  align-items: stretch;
+  align-items: start;
+  align-items: end;
+  align-items: center;
+  
+  /* Justify content */
+  justify-content: start;
+  justify-content: end;
+  justify-content: center;
+  justify-content: space-between;
+  justify-content: space-around;
+  justify-content: space-evenly;
+  
+  /* Align content */
+  align-content: start;
+  align-content: end;
+  align-content: center;
+  align-content: space-between;
+  align-content: space-around;
+  align-content: space-evenly;
+  
+  /* Implicit grid */
+  grid-auto-rows: 100px;
+  grid-auto-columns: 100px;
+  grid-auto-flow: row;
+  grid-auto-flow: column;
+  grid-auto-flow: dense;
+}
+```
+
+### Item Properties
+
+```css
+.grid-item {
+  /* Grid column */
+  grid-column: auto;
+  grid-column: 1;
+  grid-column: 1 / 3; /* start / end */
+  grid-column: 1 / span 2;
+  
+  /* Grid row */
+  grid-row: auto;
+  grid-row: 1;
+  grid-row: 1 / 3;
+  grid-row: 1 / span 2;
+  
+  /* Shorthand */
+  grid-area: 1 / 1 / 3 / 3; /* row-start / col-start / row-end / col-end */
+  
+  /* Grid template area */
+  grid-area: header;
+  
+  /* Align self */
+  justify-self: stretch;
+  justify-self: start;
+  justify-self: end;
+  justify-self: center;
+  
+  align-self: stretch;
+  align-self: start;
+  align-self: end;
+  align-self: center;
+}
+```
+
+### Grid Examples
+
+```css
+/* Simple 3 column layout */
+.three-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* Responsive grid */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* Holy grail layout */
+.holy-grail {
+  display: grid;
+  grid-template-areas: 
+    "header header header"
+    "nav main aside"
+    "footer footer footer";
+  grid-template-columns: 200px 1fr 200px;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+}
+.holy-grail header { grid-area: header; }
+.holy-grail nav { grid-area: nav; }
+.holy-grail main { grid-area: main; }
+.holy-grail aside { grid-area: aside; }
+.holy-grail footer { grid-area: footer; }
+```
+
+---
+
+## CSS Positioning
+
+Positioning controls how elements are placed on the page.
+
+```css
+.position-examples {
+  /* Static - default */
+  position: static;
+  
+  /* Relative - relative to normal position */
+  position: relative;
+  top: 10px;
+  left: 20px;
+  right: 10px;
+  bottom: 20px;
+  
+  /* Absolute - relative to nearest positioned ancestor */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  /* Fixed - relative to viewport */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  
+  /* Sticky - toggles between relative and fixed */
+  position: sticky;
+  top: 0;
+}
+
+/* Z-index */
+.z-index-example {
+  position: relative;
+  z-index: 1;
+  z-index: auto;
+  z-index: 0;
+  z-index: 100;
+  z-index: -1;
+}
+```
+
+### Centering with Position
+
+```css
+/* Center absolutely positioned element */
+.center-absolute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Center with inset */
+.center-inset {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+```
+
+---
+
+## CSS Responsive Design
+
+Responsive design makes websites work on all devices.
+
+### Viewport Meta Tag
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+```
+
+### Responsive Patterns
+
+```css
+/* Mobile-first approach */
+.container {
+  width: 100%;
+  padding: 0 15px;
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+  .container {
+    width: 720px;
+    margin: 0 auto;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container {
+    width: 960px;
+    margin: 0 auto;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1200px) {
+  .container {
+    width: 1140px;
+    margin: 0 auto;
+  }
+}
+```
+
+### Breakpoints
+
+```css
+/* Common breakpoints */
+/* Small phones */
+@media (max-width: 479px) { }
+
+/* Large phones */
+@media (min-width: 480px) and (max-width: 767px) { }
+
+/* Tablets */
+@media (min-width: 768px) and (max-width: 1023px) { }
+
+/* Laptops/Desktops */
+@media (min-width: 1024px) and (max-width: 1439px) { }
+
+/* Large screens */
+@media (min-width: 1440px) { }
+```
+
+---
+
+## CSS Animations
+
+Create complex animations with keyframes.
+
+```css
+/* Define keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-30px); }
+  60% { transform: translateY(-15px); }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Apply animation */
+.animated-element {
+  /* name duration timing-function delay iteration-count direction fill-mode */
+  animation: fadeIn 1s ease-in-out 0s 1 normal both;
+  
+  animation-name: fadeIn;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: both;
+  
+  /* Shorthand */
+  animation: fadeIn 1s ease-in-out;
+  
+  /* Infinite loop */
+  animation: pulse 2s infinite;
+  
+  /* Pause/Play */
+  animation-play-state: running;
+  animation-play-state: paused;
+}
+
+/* Animation timing functions */
+.timing-examples {
+  animation-timing-function: ease;
+  animation-timing-function: ease-in;
+  animation-timing-function: ease-out;
+  animation-timing-function: ease-in-out;
+  animation-timing-function: linear;
+  animation-timing-function: step-start;
+  animation-timing-function: step-end;
+  animation-timing-function: steps(5, end);
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+---
+
+## CSS Transitions
+
+Transitions smoothly change property values over a duration.
+
+```css
+.transition-examples {
+  /* Basic transition */
+  transition: property duration timing-function delay;
+  
+  transition: all 0.3s ease;
+  transition: background-color 0.3s ease-in-out;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  
+  /* Individual properties */
+  transition-property: all;
+  transition-property: background-color, transform, opacity;
+  
+  transition-duration: 0.3s;
+  transition-duration: 300ms;
+  
+  transition-timing-function: ease;
+  transition-timing-function: linear;
+  transition-timing-function: ease-in;
+  transition-timing-function: ease-out;
+  transition-timing-function: ease-in-out;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  transition-delay: 0s;
+  transition-delay: 0.2s;
+}
+
+/* Hover effects */
+.button {
+  background-color: blue;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: darkblue;
+}
+
+/* Multiple properties */
+.card {
+  background-color: white;
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  background-color: #f9f9f9;
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+```
+
+---
+
+## CSS Transforms
+
+Transform modifies the appearance of elements without affecting document flow.
+
+```css
+.transform-examples {
+  /* 2D Transform */
+  transform: none;
+  
+  /* Translate (move) */
+  transform: translate(20px, 30px);
+  transform: translateX(20px);
+  transform: translateY(30px);
+  transform: translate(50%); /* percentage of element */
+  
+  /* Scale (resize) */
+  transform: scale(1);
+  transform: scale(1.5);
+  transform: scale(2, 1); /* width, height */
+  transform: scaleX(2);
+  transform: scaleY(1.5);
+  
+  /* Rotate */
+  transform: rotate(0deg);
+  transform: rotate(45deg);
+  transform: rotate(360deg);
+  transform: rotate(-45deg);
+  
+  /* Skew (shear) */
+  transform: skew(0deg);
+  transform: skew(20deg);
+  transform: skewX(20deg);
+  transform: skewY(20deg);
+  
+  /* Matrix (combine all 2D) */
+  transform: matrix(a, b, c, d, e, f);
+  
+  /* Multiple transforms */
+  transform: translate(20px, 30px) rotate(45deg) scale(1.5);
+  
+  /* 3D Transform */
+  transform: rotateX(45deg);
+  transform: rotateY(45deg);
+  transform: rotateZ(45deg);
+  
+  transform: translateZ(50px);
+  transform: translate3d(20px, 30px, 50px);
+  transform: scale3d(1.5, 1.5, 1.5);
+  transform: scaleZ(2);
+  
+  transform: perspective(500px);
+  transform: perspective(500px) rotateX(45deg);
+  
+  /* Transform origin */
+  transform-origin: center center;
+  transform-origin: top left;
+  transform-origin: 50% 50%;
+  transform-origin: 100px 100px;
+  
+  /* Transform style */
+  transform-style: flat;
+  transform-style: preserve-3d;
+  
+  /* Backface visibility */
+  backface-visibility: visible;
+  backface-visibility: hidden;
+}
+```
+
+---
+
+## CSS Variables (Custom Properties)
+
+Variables store reusable values throughout the document.
+
+```css
+/* Define variables in :root */
+:root {
+  /* Colors */
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --text-color: #333;
+  --bg-color: #fff;
+  --error-color: #e74c3c;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Typography */
+  --font-primary: 'Arial', sans-serif;
+  --font-size-base: 16px;
+  --line-height-base: 1.5;
+  
+  /* Borders */
+  --border-radius: 4px;
+  --border-width: 1px;
+  --border-color: #ddd;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Using variables */
+.element {
+  color: var(--primary-color);
+  background-color: var(--bg-color);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+}
+
+/* Fallback values */
+.element {
+  color: var(--primary-color, blue);
+}
+
+/* Using in calc() */
+.element {
+  width: calc(100% - var(--spacing-lg) * 2);
+}
+
+/* Override variables */
+.special-theme {
+  --primary-color: #e74c3c;
+  --bg-color: #f9f9f9;
+}
+
+/* Media queries with variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: #f5f5f5;
+    --bg-color: #1a1a1a;
+    --border-color: #333;
+  }
+}
+
+/* JavaScript access */
+element.style.setProperty('--primary-color', '#ff0000');
+```
+
+---
+
+## CSS Media Queries
+
+Media queries apply styles based on device characteristics.
+
+```css
+/* Basic media queries */
+@media (max-width: 768px) {
+  .container { width: 100%; }
+}
+
+@media (min-width: 768px) {
+  .container { width: 720px; }
+}
+
+/* Media types */
+@media screen { }
+@media print { }
+@media speech { }
+@media all { }
+
+/* Media features */
+@media (width: 768px) { }
+@media (min-width: 768px) { }
+@media (max-width: 768px) { }
+
+@media (height: 600px) { }
+@media (min-height: 600px) { }
+@media (max-height: 600px) { }
+
+@media (aspect-ratio: 16/9) { }
+@media (min-aspect-ratio: 16/9) { }
+
+@media (orientation: portrait) { }
+@media (orientation: landscape) { }
+
+@media (resolution: 300dpi) { }
+@media (min-resolution: 2dppx) { }
+
+@media (color: 2) { }
+@media (color-index: 256) { }
+
+/* Multiple conditions */
+@media (min-width: 768px) and (max-width: 1024px) { }
+@media (min-width: 768px) or (orientation: portrait) { }
+@media (not (max-width: 768px)) { }
+
+/* Print styles */
+@media print {
+  body { font-size: 12pt; }
+  .no-print { display: none; }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  body { background-color: #1a1a1a; color: #fff; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .button { padding: 12px 24px; }
+}
+
+/* High contrast */
+@media (prefers-contrast: more) {
+  .button { border: 2px solid currentColor; }
+}
+```
+
+---
+
+## CSS Pseudo-classes & Pseudo-elements
+
+Pseudo-classes style elements based on state or position. Pseudo-elements style specific parts of elements.
+
+### Pseudo-classes
+
+```css
+/* State pseudo-classes */
+.link:hover { }
+.link:active { }
+.link:focus { }
+.link:visited { }
+.link:link { }
+
+/* Input pseudo-classes */
+.input:enabled { }
+.input:disabled { }
+.input:checked { }
+.input:required { }
+.input:optional { }
+.input:valid { }
+.input:invalid { }
+.input:focus-within { }
+
+.checkbox:checked { }
+
+/* Structural pseudo-classes */
+.element:first-child { }
+.element:last-child { }
+.element:nth-child(2) { }
+.element:nth-child(odd) { }
+.element:nth-child(even) { }
+.element:nth-child(2n) { }
+.element:nth-child(2n+1) { }
+.element:nth-child(-n+3) { }
+
+.element:first-of-type { }
+.element:last-of-type { }
+.element:nth-of-type(2) { }
+.element:nth-of-type(odd) { }
+
+.element:only-child { }
+.element:only-of-type { }
+
+.element:empty { }
+
+/* Not pseudo-class */
+.element:not(.class) { }
+.element:not(:first-child) { }
+.element:not([type="checkbox"]) { }
+
+/* Other pseudo-classes */
+.element:root { }
+.element:target { }
+.element:lang(en) { }
+.element:defined { }
+.element:has(.child) { } /* Parent selector */
+
+/* Form validation */
+input:placeholder-shown { }
+input:in-range { }
+input:out-of-range { }
+```
+
+### Pseudo-elements
+
+```css
+/* Before and After */
+.element::before {
+  content: "";
+  content: "→";
+  content: attr(data-label);
+  content: counter(heading) ". ";
+}
+
+.element::after {
+  content: "";
+}
+
+/* First letter and line */
+.text::first-letter { font-size: 2em; }
+.text::first-line { font-weight: bold; }
+
+/* Selection */
+::selection {
+  background-color: blue;
+  color: white;
+}
+
+/* Placeholder */
+input::placeholder {
+  color: #999;
+}
+
+input::-webkit-input-placeholder { }
+input::-moz-placeholder { }
+input:-ms-input-placeholder { }
+
+/* Marker (list items) */
+li::marker {
+  color: blue;
+}
+
+/* Backdrop (dialog) */
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Spacing quotes */
+q::quotes {
+  open-quote: "«";
+  close-quote: "»";
+}
+```
+
+---
+
+## CSS Specificity
+
+Specificity determines which styles are applied when multiple rules target the same element.
+
+### Specificity Hierarchy
+
+```
+Inline styles       = 1000
+IDs                 = 100
+Classes, attributes = 10
+Elements, pseudo-elements = 1
+Universal (*)       = 0
+```
+
+```css
+/* Examples */
+#header { }                    /* Specificity: 0,1,0,0 (100) */
+.header { }                    /* Specificity: 0,0,1,0 (10) */
+div { }                        /* Specificity: 0,0,0,1 (1) */
+div.header { }                 /* Specificity: 0,0,1,1 (11) */
+div .header { }                /* Specificity: 0,0,2,1 (21) */
+#header .header { }            /* Specificity: 0,1,1,0 (110) */
+div#header { }                 /* Specificity: 0,1,0,1 (101) */
+```
+
+### Specificity Rules
+
+```css
+/* !important overrides specificity */
+.element {
+  color: red !important;
+}
+
+/* Avoid !important - use specific selectors instead */
+
+/* Don't do this */
+* { color: red !important; }
+
+/* Do this instead */
+body p { color: red; }
+
+/* :not() doesn't add specificity */
+:not(.important) { } /* Specificity: 0,0,1,0 */
+:not(p) { } /* Specificity: 0,0,0,1 */
+
+/* :is() and :where() - takes most specific selector */
+:is(.header, #nav) { } /* Specificity: 0,0,1,0 or 0,1,0,0 */
+:where(.header, #nav) { } /* Specificity: 0,0,0,0 */
+```
+
+---
+
+## CSS Display Property
+
+The display property determines how elements behave in the layout.
+
+```css
+.display-examples {
+  /* Outside display */
+  display: block;
+  display: inline;
+  display: inline-block;
+  
+  /* Inside display */
+  display: flex;
+  display: inline-flex;
+  display: grid;
+  display: inline-grid;
+  
+  /* List item */
+  display: list-item;
+  
+  /* Table */
+  display: table;
+  display: inline-table;
+  display: table-row;
+  display: table-cell;
+  display: table-column;
+  display: table-caption;
+  display: table-header-group;
+  display: table-footer-group;
+  display: table-row-group;
+  
+  /* Others */
+  display: none;
+  display: contents;
+  display: run-in;
+  
+  /* Modern */
+  display: flow;
+  display: flow-root;
+  display: ruby;
+  display: ruby-base;
+  display: ruby-text;
+  display: ruby-base-container;
+  display: ruby-text-container;
+}
+
+/* Block - takes full width */
+.block {
+  display: block;
+  width: 100%;
+}
+
+/* Inline - takes content width, can't set width/height */
+.inline {
+  display: inline;
+}
+
+/* Inline-block - like inline but can set dimensions */
+.inline-block {
+  display: inline-block;
+  width: 100px;
+  height: 50px;
+}
+
+/* None - removes from layout */
+.hidden {
+  display: none;
+}
+
+/* Contents - removes wrapper, flattens children */
+.flatten {
+  display: contents;
+}
+```
+
+---
+
+## CSS Units
+
+CSS supports various units for different properties.
+
+### Absolute Units
+
+```css
+.absolute-units {
+  /* Pixel - most commonly used */
+  width: 100px;
+  font-size: 16px;
+  
+  /* Centimeters, millimeters, inches */
+  width: 2cm;
+  width: 20mm;
+  width: 2in;
+  
+  /* Points (1/72 inch) */
+  font-size: 12pt;
+  
+  /* Picas (1/6 inch) */
+  font-size: 1pc;
+  
+  /* Quarter-millimeter */
+  width: 50q;
+}
+```
+
+### Relative Units
+
+```css
+.relative-units {
+  /* Em - relative to parent's font-size */
+  font-size: 1.5em;
+  padding: 2em;
+  
+  /* Rem - relative to root (html) font-size */
+  font-size: 1.5rem;
+  padding: 2rem;
+  
+  /* Percentage - relative to parent */
+  width: 50%;
+  font-size: 150%;
+  
+  /* Viewport units */
+  width: 100vw;   /* 100% of viewport width */
+  height: 100vh;  /* 100% of viewport height */
+  width: 50vw;    /* 50% of viewport width */
+  min-height: 100vh;
+  
+  /* Viewport min/max */
+  width: 100vmin; /* smaller of vw/vh */
+  width: 100vmax; /* larger of vw/vh */
+  
+  /* Ch - width of "0" character */
+  max-width: 60ch;
+  
+  /* Ex - height of "x" character */
+  font-size: 2ex;
+  
+  /* Rcap - cap height */
+  font-size: 2rcap;
+  
+  /* Rch - "0" width in root */
+  width: 10rch;
+}
+
+/* Container query units */
+@container (min-width: 400px) {
+  .card {
+    font-size: 1.5cqw; /* Container query width */
+    padding: 5cqh;      /* Container query height */
+  }
+}
+```
+
+### Unit Conversion Examples
+
+```css
+/* Converting px to rem */
+html {
+  font-size: 16px; /* Default */
+}
+
+.rem-example {
+  font-size: 1rem;      /* 16px */
+  font-size: 1.5rem;    /* 24px */
+  font-size: 0.875rem;  /* 14px */
+  padding: 1.5rem;      /* 24px */
+}
+
+/* Common conversions */
+.px-to-rem {
+  /* 8px */
+  padding: 0.5rem;
+  
+  /* 16px */
+  font-size: 1rem;
+  
+  /* 24px */
+  margin: 1.5rem;
+  
+  /* 32px */
+  gap: 2rem;
+}
+```
+
+---
+
+## CSS Reset/Normalize
+
+Reset or normalize browser default styles for consistent cross-browser rendering.
+
+### Simple Reset
+
+```css
+/* Basic CSS Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+```
+
+### Modern Reset (More Comprehensive)
+
+```css
+/* Modern CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Remove default fieldset styles */
+fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+
+/* Improve media defaults */
+img, picture, video, canvas, svg {
+  width: 100%;
+  display: block;
+}
+```
+
+---
+
+## CSS Best Practices
+
+### Organization
+
+```css
+/* Use logical ordering */
+/* 1. Layout (position, display, grid, flex) */
+/* 2. Box model (width, height, padding, margin, border) */
+/* 3. Visual (background, colors, shadows) */
+/* 4. Typography (font, text, line-height) */
+/* 5. Effects (animations, transitions) */
+
+.button {
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Box model */
+  padding: 12px 24px;
+  border-radius: 4px;
+  
+  /* Visual */
+  background-color: #3498db;
+  color: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  /* Typography */
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  
+  /* Effects */
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+```
+
+### Naming Conventions
+
+```css
+/* BEM (Block Element Modifier) */
+/* Block */
+.card { }
+
+/* Element */
+.card__title { }
+.card__content { }
+.card__image { }
+
+/* Modifier */
+.card--featured { }
+.card--dark { }
+.card__title--large { }
+
+/* Example */
+.button { }
+.button--primary { }
+.button--secondary { }
+.button__icon { }
+.button__icon--left { }
+```
+
+### Performance Tips
+
+```css
+/* Use transform and opacity for animations */
+.animated {
+  transform: translateX(100px);
+  opacity: 0.5;
+  /* Don't animate: left, top, width, height, margin, padding */
+}
+
+/* Use will-change sparingly */
+.optimized {
+  will-change: transform, opacity;
+}
+
+/* Containment for complex layouts */
+.contained {
+  contain: layout style paint;
+  contain: strict;
+  contain: content;
+}
+
+/* Font loading */
+@font-face {
+  font-family: 'MyFont';
+  src: url('myfont.woff2') format('woff2');
+  font-display: swap;
+}
+
+/* Prefer specific selectors */
+h1 { }           /* Bad - too broad */
+.heading { }     /* Good */
+h1.heading { }   /* Better - more specific */
+
+/* Use efficient selectors */
+.sidebar > .menu-item { }  /* Good - direct child */
+.sidebar .menu-item { }   /* Also good */
+* { }                     /* Avoid - too broad */
+```
+
+### Responsive Best Practices
+
+```css
+/* Mobile-first approach */
+.container {
+  width: 100%;
+  padding: 0 15px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 720px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    width: 960px;
+  }
+}
+
+/* Use relative units */
+.element {
+  width: 50%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+/* Flexible images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Container queries */
+@container (min-width: 400px) {
+  .card {
+    display: flex;
+    flex-direction: row;
+  }
+}
+```
+
+---
+
+## Quick Reference Cheatsheet
+
+### Common CSS Properties
+
+| Property | Description |
+|----------|-------------|
+| `display` | Element display type |
+| `position` | Positioning method |
+| `top/right/bottom/left` | Position offset |
+| `width/height` | Element dimensions |
+| `margin/padding` | Spacing |
+| `border` | Border styling |
+| `background` | Background styling |
+| `color` | Text color |
+| `font` | Font shorthand |
+| `z-index` | Stack order |
+
+### Common Values
+
+```css
+/* Display */
+display: block | inline | inline-block | flex | grid | none;
+
+/* Position */
+position: static | relative | absolute | fixed | sticky;
+
+/* Units */
+font-size: 16px | 1rem | 1em | 100%;
+
+/* Colors */
+color: #fff | rgb(255,255,255) | rgba(255,255,255,0.5) | hsl(0,0%,100%);
+```
+
+---
+
+## Conclusion
+
+This tutorial covered all the essential CSS concepts you need to know:
+
+- ✅ Selectors and specificity
+- ✅ Box model
+- ✅ Colors and typography
+- ✅ Flexbox layout
+- ✅ Grid layout
+- ✅ Positioning
+- ✅ Responsive design
+- ✅ Animations and transitions
+- ✅ Transforms
+- ✅ CSS variables
+- ✅ Media queries
+- ✅ Pseudo-classes and pseudo-elements
+- ✅ Display modes
+- ✅ CSS units
+- ✅ Best practices
+
+Keep practicing and building projects to master these concepts!
+
+Happy Coding! 🚀

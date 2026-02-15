@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Blog - Skeleton</title>
+    <style>
+        /* Theme CSS Custom Properties */
+        :root {
+            --primary-text: #050505;
+            --secondary-text: #65676b;
+            --primary-background: #fff;
+            --secondary-background: #e4e6eb;
+            --secondary-background-hover: #d9dbdf;
+            --primary-border: #ced0d4;
+            --blue-link: #216fdb;
+            --web-wash: #f0f2f5;
+            --filter: none;
+            --filter-hover: invert(0.25);
+            --overlay-background: rgba(0, 0, 0, .25);
+            --overlay-fallback-background: #ccc;
+            --thumb-background: #e4e6eb;
+            --img-desc: #fff;
+            --modal-background: rgba(0, 0, 0, 0.4);
+            --button-primary-background: #3578e5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--web-wash);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--primary-background);
+            border-bottom: 1px solid var(--primary-border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 672px;
+            margin: 0 auto;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-text);
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: var(--secondary-text);
+            margin-top: 2px;
+        }
+
+        .login-btn {
+            background-color: #1b1f23;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .login-btn:hover {
+            background-color: #30363d;
+        }
+
+        /* Toggle Button */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background-color: var(--secondary-background);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--secondary-text);
+        }
+
+        .toggle-btn:hover {
+            background-color: var(--secondary-background-hover);
+            color: var(--primary-text);
+        }
+
+        .toggle-btn.active {
+            background-color: var(--button-primary-background);
+            color: white;
+        }
+
+        .toggle-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 672px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        /* Create Post Section */
+        .create-post {
+            background-color: var(--primary-background);
+            border: 1px solid var(--primary-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .create-post-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-background);
+        }
+
+        .create-post-btn {
+            flex: 1;
+            text-align: left;
+            background-color: var(--secondary-background);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 16px;
+            color: var(--secondary-text);
+            font-size: 17px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .create-post-btn:hover {
+            background-color: var(--secondary-background-hover);
+        }
+
+        /* Post Styles */
+        .b_post {
+            border-radius: 8px;
+            background-color: var(--primary-background);
+            margin-bottom: 10px;
+            padding: 12px;
+            position: relative;
+            border: 1px solid var(--primary-border);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .b_post:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Post Header */
+        .b_header {
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .b_profile {
+            float: left;
+            border-radius: 50%;
+            margin-right: 12px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .b_desc {
+            font-size: 14px;
+            margin-right: 32px;
+            margin-left: 50px;
+        }
+
+        .b_name {
+            color: var(--primary-text);
+            font-weight: 600;
+            margin: 3px 0;
+            font-size: 14px;
+        }
+
+        .b_name a {
+            color: var(--primary-text);
+            text-decoration: none;
+        }
+
+        .b_name a:hover {
+            text-decoration: underline;
+        }
+
+        .b_options,
+        .b_with {
+            color: var(--secondary-text);
+            font-size: 13px;
+        }
+
+        .b_date {
+            font-size: 13px;
+            color: var(--secondary-text);
+            text-decoration: none;
+        }
+
+        .b_date:hover {
+            text-decoration: underline;
+        }
+
+        .b_location {
+            position: relative;
+            padding-left: 15px;
+        }
+
+        .b_location::before {
+            content: "📍";
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 12px;
+        }
+
+        .privacy_icon {
+            margin-left: 4px;
+        }
+
+        /* Post Title */
+        .post-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: var(--primary-text);
+            line-height: 1.4;
+        }
+
+        /* Post Content */
+        .b_text {
+            word-wrap: break-word;
+            font-size: 15px;
+            padding-top: 8px;
+            overflow: hidden;
+            line-height: 1.5;
+            color: var(--primary-text);
+        }
+
+        .b_text p {
+            margin-bottom: 12px;
+        }
+
+        .b_text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .b_text a {
+            color: var(--blue-link);
+            text-decoration: none;
+        }
+
+        .b_text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Images */
+        .b_img {
+            display: block;
+            margin-top: 12px;
+            overflow: hidden;
+            position: relative;
+            font-size: 0;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .b_img img {
+            max-width: 100%;
+            max-height: 470px;
+            border-radius: 8px;
+        }
+
+        /* Tags */
+        .tag {
+            cursor: pointer;
+            color: var(--blue-link);
+            font-weight: 500;
+            margin-right: 8px;
+        }
+
+        .tag:hover {
+            text-decoration: underline;
+        }
+
+        /* Post Actions */
+        .b_actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px solid var(--primary-border);
+        }
+
+        .b_actions_left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .b_action_btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: none;
+            background: none;
+            color: var(--secondary-text);
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .b_action_btn:hover {
+            background-color: var(--secondary-background);
+            color: var(--primary-text);
+        }
+
+        .b_action_btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .b_action_btn.like:hover {
+            color: #e74c3c;
+        }
+
+        .b_action_btn.comment:hover {
+            color: var(--blue-link);
+        }
+
+        .b_action_btn.gist:hover {
+            color: #24292e;
+        }
+
+        /* Feed End */
+        #eof_feed {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--secondary-text);
+            padding: 20px 0;
+        }
+
+        /* Read More */
+        .b_text_preview {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .b_text_preview.collapsed {
+            max-height: 120px;
+        }
+
+        .b_text_fade {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent 0%, var(--primary-background) 75%, var(--primary-background) 100%);
+            pointer-events: none;
+        }
+
+        .read_more_btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: none;
+            border: none;
+            color: var(--blue-link);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .read_more_btn:hover {
+            background-color: var(--secondary-background);
+        }
+
+        /* Tools Dropdown */
+        .post-tools-container {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        .b_tools {
+            display: block;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            transition: all 200ms cubic-bezier(0, 0, 1, 1);
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+            opacity: 0;
+            z-index: 15;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .b_post:hover .b_tools {
+            opacity: 1;
+        }
+
+        .b_tools::after {
+            display: inline-block;
+            content: "⋯";
+            color: #374151;
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 34px;
+            text-align: center;
+        }
+
+        .b_tools:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.1);
+        }
+
+        .b_dropdown {
+            display: none;
+            text-align: left;
+            position: absolute;
+            z-index: 105;
+            background-color: var(--primary-background);
+            border: 1px solid var(--primary-border);
+            border-radius: 8px;
+            box-shadow: rgba(0,0,0,.2) 0px 12px 28px 0px, rgba(0,0,0,.1) 0px 2px 4px 0px;
+            padding: 8px;
+            min-width: 150px;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+        }
+
+        .b_dropdown.show {
+            display: block;
+        }
+
+        .b_dropdown li {
+            list-style-type: none;
+        }
+
+        .b_dropdown li a {
+            display: block;
+            font-weight: normal;
+            color: var(--primary-text);
+            font-size: 14px;
+            line-height: 20px;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.1s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .b_dropdown li a:hover {
+            background-color: var(--secondary-background);
+        }
+
+        .b_dropdown li a.delete-item {
+            color: #dc2626;
+        }
+
+        .b_dropdown li a.delete-item:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Empty State */
+        .empty-state {
+            background-color: var(--primary-background);
+            border: 1px solid var(--primary-border);
+            border-radius: 8px;
+            padding: 48px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-icon svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-text);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--secondary-text);
+            font-size: 15px;
+        }
+
+        /* Loading Skeleton */
+        .skeleton-post {
+            background-color: var(--primary-background);
+            border: 1px solid var(--primary-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e4e6eb 25%, #f0f2f5 50%, #e4e6eb 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            float: left;
+            margin-right: 12px;
+        }
+
+        .skeleton-name {
+            height: 16px;
+            width: 120px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-date {
+            height: 12px;
+            width: 80px;
+        }
+
+        .skeleton-text {
+            height: 14px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-text-1 { width: 100%; }
+        .skeleton-text-2 { width: 85%; }
+        .skeleton-text-3 { width: 70%; }
+
+        .clear {
+            clear: both;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <!-- Toggle Button -->
+                <div class="toggle-container">
+                    <button class="toggle-btn" id="viewToggle" onclick="toggleView()" title="Toggle between feed and grid view">
+                        <svg id="feedIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        <svg id="gridIcon" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <h1>Quick Blog</h1>
+                <p>Share your thoughts instantly</p>
+            </div>
+            <button class="login-btn">Login</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Create Post Section -->
+        <div class="create-post">
+            <div class="create-post-header">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect fill='%23e4e6eb' width='40' height='40'/%3E%3Ctext x='20' y='25' text-anchor='middle' fill='%239ca3af' font-size='16'%3E?%3C/text%3E%3C/svg%3E" alt="Avatar" class="avatar">
+                <button class="create-post-btn">What's on your mind? Use BBCode, paste images, share links...</button>
+            </div>
+        </div>
+
+        <!-- Blog Posts Feed -->
+        <div id="b_feed">
+            
+            <!-- Post 1 -->
+            <div class="b_post">
+                <!-- Post Tools -->
+                <div class="post-tools-container">
+                    <button class="b_tools" onclick="toggleDropdown(this)"></button>
+                    <ul class="b_dropdown">
+                        <li><a href="#">✏️ Edit post</a></li>
+                        <li><a href="#" class="delete-item">🗑️ Delete post</a></li>
+                    </ul>
+                </div>
+
+                <!-- Post Header -->
+                <div class="b_header">
+                    <img src="https://avatars.githubusercontent.com/u/12345678?v=4" alt="johndoe" class="b_profile">
+                    <div class="b_desc">
+                        <div class="b_name">
+                            <a href="https://github.com/johndoe" target="_blank">johndoe</a>
+                        </div>
+                        <div class="b_options">
+                            <a href="#" class="b_date">January 15, 2026 at 3:45 PM</a>
+                            <span class="b_with"> — at </span>
+                            <span class="b_location">New York, NY</span>
+                            <span class="privacy_icon">🌍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Title -->
+                <h2 class="post-title">My First Blog Post</h2>
+
+                <!-- Post Content -->
+                <div class="b_text">
+                    <p>Hello everyone! This is my first blog post on this platform. I'm excited to share my thoughts and experiences with all of you.</p>
+                    <p>I've been working on some interesting projects lately, and I can't wait to tell you all about them. Stay tuned for more updates!</p>
+                </div>
+
+                <!-- Tags -->
+                <div class="b_text">
+                    <span class="tag">#introduction</span>
+                    <span class="tag">#blogging</span>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="b_actions">
+                    <div class="b_actions_left">
+                        <button class="b_action_btn like">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            Like
+                        </button>
+                        <button class="b_action_btn comment">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Comment
+                        </button>
+                        <a href="#" class="b_action_btn gist" target="_blank">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                            View Gist
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post 2 - With Image -->
+            <div class="b_post">
+                <!-- Post Tools -->
+                <div class="post-tools-container">
+                    <button class="b_tools" onclick="toggleDropdown(this)"></button>
+                    <ul class="b_dropdown">
+                        <li><a href="#">✏️ Edit post</a></li>
+                        <li><a href="#" class="delete-item">🗑️ Delete post</a></li>
+                    </ul>
+                </div>
+
+                <!-- Post Header -->
+                <div class="b_header">
+                    <img src="https://avatars.githubusercontent.com/u/87654321?v=4" alt="jane_dev" class="b_profile">
+                    <div class="b_desc">
+                        <div class="b_name">
+                            <a href="https://github.com/jane_dev" target="_blank">jane_dev</a>
+                        </div>
+                        <div class="b_options">
+                            <a href="#" class="b_date">January 14, 2026 at 10:30 AM</a>
+                            <span class="privacy_icon">🌍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Title -->
+                <h2 class="post-title">Beautiful Sunset at the Beach</h2>
+
+                <!-- Post Content -->
+                <div class="b_text">
+                    <p>Had an amazing time watching the sunset at the beach today! The colors were absolutely breathtaking. Nature never fails to amaze me.</p>
+                </div>
+
+                <!-- Image -->
+                <div class="b_img">
+                    <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800" alt="Sunset at the beach">
+                </div>
+
+                <!-- Tags -->
+                <div class="b_text">
+                    <span class="tag">#sunset</span>
+                    <span class="tag">#beach</span>
+                    <span class="tag">#nature</span>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="b_actions">
+                    <div class="b_actions_left">
+                        <button class="b_action_btn like">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            Like
+                        </button>
+                        <button class="b_action_btn comment">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Comment
+                        </button>
+                        <a href="#" class="b_action_btn gist" target="_blank">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                            View Gist
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post 3 - Long Content with Read More -->
+            <div class="b_post">
+                <!-- Post Tools -->
+                <div class="post-tools-container">
+                    <button class="b_tools" onclick="toggleDropdown(this)"></button>
+                    <ul class="b_dropdown">
+                        <li><a href="#">✏️ Edit post</a></li>
+                        <li><a href="#" class="delete-item">🗑️ Delete post</a></li>
+                    </ul>
+                </div>
+
+                <!-- Post Header -->
+                <div class="b_header">
+                    <img src="https://avatars.githubusercontent.com/u/112233445?v=4" alt="code_master" class="b_profile">
+                    <div class="b_desc">
+                        <div class="b_name">
+                            <a href="https://github.com/code_master" target="_blank">code_master</a>
+                        </div>
+                        <div class="b_options">
+                            <a href="#" class="b_date">January 13, 2026 at 8:15 PM</a>
+                            <span class="privacy_icon">🔒</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Title -->
+                <h2 class="post-title">Learning TypeScript: A Comprehensive Guide</h2>
+
+                <!-- Post Content with Read More -->
+                <div class="b_text">
+                    <div class="b_text_preview collapsed">
+                        <p>TypeScript has become an essential skill for modern web development. In this comprehensive guide, I'll walk you through everything you need to know to get started with TypeScript and become proficient in no time.</p>
+                        <p>We'll cover topics like type annotations, interfaces, generics, and advanced types. By the end of this post, you'll have a solid understanding of TypeScript fundamentals and be ready to build type-safe applications.</p>
+                        <p>TypeScript is a strongly typed programming language that builds on JavaScript. It adds static type definitions, classes, modules, and other features to help developers write more maintainable code.</p>
+                        <p>One of the key benefits of TypeScript is that it helps catch errors at compile time rather than runtime. This can save hours of debugging and make your code more reliable.</p>
+                        <div class="b_text_fade"></div>
+                    </div>
+                    <button class="read_more_btn">Read more ▼</button>
+                </div>
+
+                <!-- Tags -->
+                <div class="b_text">
+                    <span class="tag">#typescript</span>
+                    <span class="tag">#programming</span>
+                    <span class="tag">#webdevelopment</span>
+                    <span class="tag">#tutorial</span>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="b_actions">
+                    <div class="b_actions_left">
+                        <button class="b_action_btn like">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            Like
+                        </button>
+                        <button class="b_action_btn comment">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Comment
+                        </button>
+                        <a href="#" class="b_action_btn gist" target="_blank">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                            View Gist
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post 4 - Code Snippet -->
+            <div class="b_post">
+                <!-- Post Tools -->
+                <div class="post-tools-container">
+                    <button class="b_tools" onclick="toggleDropdown(this)"></button>
+                    <ul class="b_dropdown">
+                        <li><a href="#">✏️ Edit post</a></li>
+                        <li><a href="#" class="delete-item">🗑️ Delete post</a></li>
+                    </ul>
+                </div>
+
+                <!-- Post Header -->
+                <div class="b_header">
+                    <img src="https://avatars.githubusercontent.com/u/99887766?v=4" alt="react_ninja" class="b_profile">
+                    <div class="b_desc">
+                        <div class="b_name">
+                            <a href="https://github.com/react_ninja" target="_blank">react_ninja</a>
+                        </div>
+                        <div class="b_options">
+                            <a href="#" class="b_date">January 12, 2026 at 2:00 PM</a>
+                            <span class="privacy_icon">🌍</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Title -->
+                <h2 class="post-title">Quick Tip: React Custom Hooks</h2>
+
+                <!-- Post Content -->
+                <div class="b_text">
+                    <p>Here's a useful custom hook I use frequently in my React projects. It handles localStorage persistence with type safety:</p>
+                    <pre style="background: #f6f8fa; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 12px 0;"><code>function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+  
+  const setValue = (value: T | ((val: T) => T)) => {
+    try {
+      const valueToStore = value instanceof Function 
+        ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+  return [storedValue, setValue] as const;
+}</code></pre>
+                    <p>Use it like this: <code>const [theme, setTheme] = useLocalStorage('theme', 'dark');</code></p>
+                </div>
+
+                <!-- Tags -->
+                <div class="b_text">
+                    <span class="tag">#react</span>
+                    <span class="tag">#javascript</span>
+                    <span class="tag">#hooks</span>
+                    <span class="tag">#tips</span>
+                </div>
+
+                <!-- Post Actions -->
+                <div class="b_actions">
+                    <div class="b_actions_left">
+                        <button class="b_action_btn like">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            Like
+                        </button>
+                        <button class="b_action_btn comment">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Comment
+                        </button>
+                        <a href="#" class="b_action_btn gist" target="_blank">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+                            View Gist
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed End Indicator -->
+            <div id="eof_feed">
+                End of posts
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // View toggle state
+        let isGridView = false;
+
+        // Toggle between feed and grid view
+        function toggleView() {
+            const feed = document.getElementById('b_feed');
+            const toggleBtn = document.getElementById('viewToggle');
+            const feedIcon = document.getElementById('feedIcon');
+            const gridIcon = document.getElementById('gridIcon');
+            
+            isGridView = !isGridView;
+            
+            if (isGridView) {
+                // Switch to grid view
+                feed.style.display = 'grid';
+                feed.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                feed.style.gap = '16px';
+                
+                // Update toggle button appearance
+                toggleBtn.classList.add('active');
+                feedIcon.style.display = 'none';
+                gridIcon.style.display = 'block';
+                
+                // Update post styles for grid
+                document.querySelectorAll('.b_post').forEach(post => {
+                    post.style.marginBottom = '0';
+                });
+            } else {
+                // Switch to feed view
+                feed.style.display = 'block';
+                feed.style.gridTemplateColumns = 'none';
+                feed.style.gap = '0';
+                
+                // Update toggle button appearance
+                toggleBtn.classList.remove('active');
+                feedIcon.style.display = 'block';
+                gridIcon.style.display = 'none';
+                
+                // Reset post styles
+                document.querySelectorAll('.b_post').forEach(post => {
+                    post.style.marginBottom = '10px';
+                });
+            }
+        }
+
+        // Toggle dropdown menu
+        function toggleDropdown(button) {
+            const dropdown = button.nextElementSibling;
+            const isShown = dropdown.classList.contains('show');
+            
+            // Hide all dropdowns first
+            document.querySelectorAll('.b_dropdown').forEach(d => d.classList.remove('show'));
+            
+            // Toggle current dropdown
+            if (!isShown) {
+                dropdown.classList.add('show');
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.post-tools-container')) {
+                document.querySelectorAll('.b_dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // Read more functionality
+        document.querySelectorAll('.read_more_btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const preview = this.previousElementSibling;
+                const isExpanded = preview.classList.contains('expanded');
+                
+                if (isExpanded) {
+                    preview.classList.remove('expanded');
+                    this.textContent = 'Read more ▼';
+                } else {
+                    preview.classList.add('expanded');
+                    this.textContent = 'Show less ▲';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

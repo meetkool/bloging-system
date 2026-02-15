@@ -5,9 +5,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { githubAPI, BlogPost } from '@/lib/github-api';
 import { notFound } from 'next/navigation';
 import '@/styles/blog-editor.css';
+
+// Types for blog posts from API
+interface BlogPost {
+  id: string;
+  description: string;
+  public: boolean;
+  created_at: string;
+  updated_at: string;
+  files: { [key: string]: { content: string } };
+  owner: { login: string; avatar_url: string };
+}
 
 interface PageProps {
   params: {
@@ -15,8 +25,57 @@ interface PageProps {
   };
 }
 
+// Parse content from a gist
+const parseGistContent = (gist: BlogPost): { title: string; content: string; tags: string[]; privacy: string; location: string } => {
+  const filename = Object.keys(gist.files)[0];
+  const fileContent = gist.files[filename]?.content || '';
+  
+  // Extract frontmatter
+  const frontmatterMatch = fileContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  
+  if (frontmatterMatch) {
+    const [, frontmatter, markdown] = frontmatterMatch;
+    const titleMatch = frontmatter.match(/title:\s*"([^"]+)"/);
+    const tagsMatch = frontmatter.match(/tags:\s*(\[[^\]]+\])/);
+    const locationMatch = frontmatter.match(/location:\s*"([^"]+)"/);
+    
+    return {
+      title: titleMatch ? titleMatch[1] : filename.replace('.md', '').replace(/-/g, ' '),
+      content: markdown,
+      tags: tagsMatch ? JSON.parse(tagsMatch[1]) : [],
+      privacy: gist.public ? 'public' : 'private',
+      location: locationMatch ? locationMatch[1] : '',
+    };
+  }
+  
+  return {
+    title: filename.replace('.md', '').replace(/-/g, ' '),
+    content: fileContent,
+    tags: [],
+    privacy: gist.public ? 'public' : 'private',
+    location: '',
+  };
+};
+
+// Transform API response to display format
+const transformPost = (gist: BlogPost) => {
+  const parsed = parseGistContent(gist);
+  return {
+    id: gist.id,
+    title: parsed.title,
+    content: parsed.content,
+    description: gist.description.replace('[BLOG]', '').trim(),
+    createdAt: gist.created_at,
+    updatedAt: gist.updated_at,
+    author: { login: gist.owner.login, avatar_url: gist.owner.avatar_url },
+    tags: parsed.tags,
+    privacy: parsed.privacy as 'public' | 'private',
+    location: parsed.location,
+  };
+};
+
 export default function QuickBlogPost({ params }: PageProps) {
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,18 +85,31 @@ export default function QuickBlogPost({ params }: PageProps) {
         setLoading(true);
         setError(null);
         
-        // First get all blog posts
-        const allPosts = await githubAPI.getBlogPosts();
+        // Fetch from server-side API
+        const response = await fetch('/api/blogs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'getPosts' }),
+        });
+        
+        if (!response.ok) {
+          const err = await response.json();
+          setError(err.error || 'Failed to load posts');
+          return;
+        }
+        
+        const data = await response.json();
+        const allPosts = data.gists || [];
         
         // Find the specific post by ID
-        const foundPost = allPosts.find(p => p.id === params.id);
+        const foundGist = allPosts.find((p: BlogPost) => p.id === params.id);
         
-        if (!foundPost) {
+        if (!foundGist) {
           setError('Post not found');
           return;
         }
         
-        setPost(foundPost);
+        setPost(transformPost(foundGist));
       } catch (err) {
         console.error('Error loading post:', err);
         setError('Failed to load post. Please try again.');
@@ -241,7 +313,7 @@ export default function QuickBlogPost({ params }: PageProps) {
             {/* Post Tags */}
             {post.tags && post.tags.length > 0 && (
               <div className="b_text" style={{ paddingTop: '8px' }}>
-                {post.tags.map((tag, index) => (
+                {post.tags.map((tag: string, index: number) => (
                   <span key={tag}>
                     {index > 0 && ' '}
                     <span className="tag">#{tag}</span>

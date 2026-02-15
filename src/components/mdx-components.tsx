@@ -1,22 +1,13 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 /**
- * Custom pre component that handles code blocks with syntax highlighting
+ * Custom Pre component that handles code blocks with syntax highlighting
  */
-const pre = ({ children, ...props }: React.HTMLProps<HTMLPreElement>) => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Check for dark mode
-    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    setIsDark(darkModeQuery.matches);
-
-    const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    darkModeQuery.addListener(handler);
-    return () => darkModeQuery.removeListener(handler);
-  }, []);
+const Pre = ({ children, ...props }: React.HTMLProps<HTMLPreElement>) => {
 
   // Extract the code element and its props
   try {
@@ -93,7 +84,7 @@ const pre = ({ children, ...props }: React.HTMLProps<HTMLPreElement>) => {
         );
       }
     }
-  } catch (error) {
+  } catch {
     // If React.Children.only fails, fall back to regular pre
   }
 
@@ -248,5 +239,5 @@ export const MDXComponents = {
   li, 
   blockquote,
   code,
-  pre,
+  pre: Pre,
 };

@@ -1,19 +1,21 @@
 // Simple configuration file for Quick Blog
-// Replace these with your actual GitHub credentials
+// GitHub credentials are now stored in environment variables
 
 const config = {
   // Login credentials
+  // These should also be moved to environment variables for security
   auth: {
-    username: 'kooljool',
-    password: 'Meetkool!',
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || 'change_me',
   },
   
   // GitHub configuration
   github: {
-    username: 'meetkool', // Your GitHub username
+    username: process.env.GITHUB_USERNAME || 'meetkool',
     // Get your personal access token from: https://github.com/settings/tokens
     // Required scopes: 'gist' (to create/read/update/delete gists)
-    personalAccessToken: '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',
+    // Token is now stored in GITHUB_PERSONAL_ACCESS_TOKEN environment variable
+    personalAccessToken: process.env.GITHUB_PERSONAL_ACCESS_TOKEN || '',
   },
   
   // App configuration
@@ -24,4 +26,3 @@ const config = {
 };
 
 module.exports = config;
-

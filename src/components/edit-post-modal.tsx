@@ -1,22 +1,23 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BlogPost, githubAPI } from '@/lib/github-api';
 import GitHubGistEditor from '@/components/github-gist-editor';
 import { PostData } from '@/types/blog-editor';
+
+import { BlogPost } from '@/lib/github-api';
 
 interface EditPostModalProps {
   post: BlogPost | null;
   isVisible: boolean;
-  onSave: (updatedPost: BlogPost) => void;
+  onSave: (updatedPost: BlogPost) => Promise<void>;
   onCancel: () => void;
 }
 
-export default function EditPostModal({ 
-  post, 
-  isVisible, 
-  onSave, 
-  onCancel 
+export default function EditPostModal({
+  post,
+  isVisible,
+  onSave,
+  onCancel
 }: EditPostModalProps) {
   const [formData, setFormData] = useState({
     title: '',
@@ -60,7 +61,7 @@ export default function EditPostModal({
     if (isVisible) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
-      
+
       return () => {
         document.removeEventListener('keydown', handleEscape);
         document.body.style.overflow = 'auto';
@@ -74,7 +75,7 @@ export default function EditPostModal({
       const firstFocusableElement = modalRef.current.querySelector(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       ) as HTMLElement;
-      
+
       firstFocusableElement?.focus();
     }
   }, [isVisible]);
@@ -86,15 +87,17 @@ export default function EditPostModal({
     setSaveError('');
 
     try {
-      // Use the current form data
-      const updatedPost = await githubAPI.updateBlogPost(post.id, {
+      // Create updated post object
+      const updatedPost: BlogPost = {
+        ...post,
         title: formData.title.trim() || post.title,
         content: postData.text || formData.content,
         location: postData.location || formData.location,
         privacy: formData.privacy,
-      });
+      };
 
-      onSave(updatedPost);
+      await onSave(updatedPost);
+      // Success handling is now up to the parent or implicit by lack of error
     } catch (error) {
       console.error('Error updating post:', error);
       setSaveError(error instanceof Error ? error.message : 'Failed to update post. Please try again.');
@@ -125,10 +128,10 @@ export default function EditPostModal({
 
   return (
     <div className="modal-overlay">
-      <div 
-        className="modal edit-post-modal" 
+      <div
+        className="modal edit-post-modal"
         ref={modalRef}
-        role="dialog" 
+        role="dialog"
         aria-labelledby="edit-post-title"
         aria-modal="true"
       >

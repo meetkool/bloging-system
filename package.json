@@ -37,6 +37,9 @@
     "typescript": "^5"
   },
   "overrides": {
+    "next-contentlayer": {
+      "next": "$next"
+    },
     "@opentelemetry/api": "1.4.1",
     "@opentelemetry/core": "1.13.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "0.39.1",
