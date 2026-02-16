@@ -7,5 +7,6 @@ import cssTutorialMdx from './css-tutorial.mdx.json' assert { type: 'json' }
 import myFirstPostMdx from './my-first-post.mdx.json' assert { type: 'json' }
 import my_first_gitMdx from './my_first_git.mdx.json' assert { type: 'json' }
 import notificationSystemsMdx from './notification-systems.mdx.json' assert { type: 'json' }
+import notifixcationMdx from './notifixcation.mdx.json' assert { type: 'json' }
 
-export const allPosts = [_1903_aMdx, scte_35Mdx, codefocesMdx, cssTutorialMdx, myFirstPostMdx, my_first_gitMdx, notificationSystemsMdx]
+export const allPosts = [_1903_aMdx, scte_35Mdx, codefocesMdx, cssTutorialMdx, myFirstPostMdx, my_first_gitMdx, notificationSystemsMdx, notifixcationMdx]
