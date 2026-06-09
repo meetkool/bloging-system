@@ -7,7 +7,6 @@ interface IProps {
   code: string;
 }
 
-// Loading placeholder component
 const LoadingPlaceholder = () => (
   <div className="animate-pulse space-y-4">
     <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -16,7 +15,6 @@ const LoadingPlaceholder = () => (
   </div>
 );
 
-// Dynamically import MDXContent with SSR disabled to avoid React 19 compatibility issues
 const MDXContent = dynamic(() => import('@/components/mdx-content'), {
   ssr: false,
   loading: LoadingPlaceholder,
